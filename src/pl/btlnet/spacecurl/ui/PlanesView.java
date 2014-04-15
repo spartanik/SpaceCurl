@@ -1,30 +1,3 @@
-/*
- * 
- * Copyright 2013 Matt Joseph
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * 
- * 
- * 
- * This custom view/widget was inspired and guided by:
- * 
- * HoloCircleSeekBar - Copyright 2012 Jes�s Manzano
- * HoloColorPicker - Copyright 2012 Lars Werkman (Designed by Marie Schweiz)
- * 
- * Although I did not used the code from either project directly, they were both used as 
- * reference material, and as a result, were extremely helpful.
- */
-
 package pl.btlnet.spacecurl.ui;
 
 import pl.btlnet.spacecurl.R;
@@ -44,7 +17,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-public class CircularSeekBar extends View {
+public class PlanesView extends View {
 
 	/**
 	 * Used to scale the dp units to pixels
@@ -863,17 +836,17 @@ public class CircularSeekBar extends View {
 		initPaints();
 	}
 
-	public CircularSeekBar(Context context) {
+	public PlanesView(Context context) {
 		super(context);
 		init(null, 0);
 	}
 
-	public CircularSeekBar(Context context, AttributeSet attrs) {
+	public PlanesView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		init(attrs, 0);
 	}
 
-	public CircularSeekBar(Context context, AttributeSet attrs, int defStyle) {
+	public PlanesView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		init(attrs, defStyle);
 	}
@@ -929,11 +902,11 @@ public class CircularSeekBar extends View {
 	*/
 	public interface OnCircularSeekBarChangeListener {
 
-		public abstract void onProgressChanged(CircularSeekBar circularSeekBar, int progress, boolean fromUser);
+		public abstract void onProgressChanged(PlanesView circularSeekBar, int progress, boolean fromUser);
 
-		public abstract void onStopTrackingTouch(CircularSeekBar seekBar);
+		public abstract void onStopTrackingTouch(PlanesView seekBar);
 
-		public abstract void onStartTrackingTouch(CircularSeekBar seekBar);
+		public abstract void onStartTrackingTouch(PlanesView seekBar);
 	}
 	
 	/**

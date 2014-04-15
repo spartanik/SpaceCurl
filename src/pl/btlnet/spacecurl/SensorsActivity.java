@@ -64,12 +64,12 @@ public class SensorsActivity extends Activity implements SensorEventListener {
 		// instantiate our simulation view and set it as the activity's content
 		// mSimulationView = new SimulationView(this);
 		// setContentView(mSimulationView);
-		setContentView(R.layout.main);
+		setContentView(R.layout.kalibracja);
 
 		rotationView = (RotationView) findViewById(R.id.rotationView);
-		rotationSectors = (RotationView) findViewById(R.id.rotationSectors);
-		rotationZ = (RotationView) findViewById(R.id.rotationZ);
-		rotationScalar = (RotationView) findViewById(R.id.rotationScalar);
+//		rotationSectors = (RotationView) findViewById(R.id.rotationSectors);
+//		rotationZ = (RotationView) findViewById(R.id.rotationZ);
+//		rotationScalar = (RotationView) findViewById(R.id.rotationScalar);
 	}
 
 	@Override
@@ -78,9 +78,9 @@ public class SensorsActivity extends Activity implements SensorEventListener {
 		mWakeLock.acquire();
 
 		rotationView.setMax(180);
-		rotationSectors.setMax(180);
-		rotationZ.setMax(180);
-		rotationScalar.setMax(180);
+//		rotationSectors.setMax(180);
+//		rotationZ.setMax(180);
+//		rotationScalar.setMax(180);
 		
 		startSensing(mSensorManager);
 		
@@ -122,9 +122,9 @@ public class SensorsActivity extends Activity implements SensorEventListener {
 		// final int data = (int) (10*event.values[usedValueIndex]);
 
 		rotationView.setProgress(dataX);
-		rotationSectors.setProgress(dataY);
-		rotationZ.setProgress(dataZ);
-		rotationScalar.setProgress(dataS);
+//		rotationSectors.setProgress(dataY);
+//		rotationZ.setProgress(dataZ);
+//		rotationScalar.setProgress(dataS);
 		
 		Log.d("XYZS", dataX + " \t"+dataY+" \t"+dataZ+" \t"+dataS);
 	}

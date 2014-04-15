@@ -20,4 +20,27 @@
     <string name="app_name">SpaceCurl</string>
     <string name="tab_app_name">Tabs</string>
 
+    <string name="zalecenia_tytul">Zalecenia</string>
+    <string name="zalecenia">Tutaj bedziemy wpisywac zalecenia dot. cwiczen wzmacniajacych, 
+        ograniczen ruchowych oraz innych rzeczy, ktore pacjent powinien zapamietac.</string>    
+    
+    <string name="nalezy_h">Należy:</string>
+    <string name="nalezy">Tutaj bedziemy wpisywac zalecenia dot. cwiczen wzmacniajacych, i rzeczy, które ogólnie pomagają</string>  
+    
+    <string name="uwagi_h">Nie należy:</string>
+    <string name="uwagi">A tutaj na temat ograniczen ruchowych oraz innych rzeczy, ktore pacjent powinien zapamietac.</string>
+        
+    <string name="label2">Analiza</string>
+    <string name="label3">Zalecenia</string>
+
+    
+    
+    
+    <string-array name="tabs_titles">
+        <item>Ćwiczenia</item>
+        <item>Badanie</item>
+        <item>Analiza</item>
+        <item>Zalecenia</item>
+    </string-array>
+    
 </resources>
