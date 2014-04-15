@@ -1,5 +1,8 @@
 package pl.btlnet.spacecurl.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import pl.btlnet.spacecurl.R;
 
 import android.content.Context;
@@ -89,6 +92,9 @@ public class PlanesView extends View {
 	 */
 	private Paint mPointerHaloBorderPaint;
 
+	private Paint mWychylenieMaxPaint;
+	private Paint mWychylenieMinPaint;
+	
 	/**
 	 * The width of the circle (in pixels).
 	 */
@@ -140,6 +146,8 @@ public class PlanesView extends View {
 	
 	private RectF mCircleRectF30 = new RectF();
 	private RectF mCircleRectF60 = new RectF();
+	private RectF mWycylenieRectMax = new RectF();
+	private RectF mWycylenieRectMin = new RectF();
 
 	/**
 	 * Holds the color value for {@code mPointerPaint} before the {@code Paint} instance is created.
@@ -200,6 +208,9 @@ public class PlanesView extends View {
 	private Path mCirclePath30;
 	private Path mCirclePath60;
 
+	private float[] mWychyleniaMax = new float[8];
+	private float[] mWychyleniaMin = new float[8];
+	
 	/**
 	 * {@code Path} used to draw the progress on the circle.
 	 */
@@ -419,7 +430,15 @@ public class PlanesView extends View {
 			mEndAngle = mEndAngle - .1f;
 		}
 
-
+		for(int i=0; i<mWychyleniaMax.length; i++){
+			mWychyleniaMax[i]=10*i;
+		}
+		
+		for(int i=0; i<mWychyleniaMin.length; i++){
+			mWychyleniaMin[i]=15;
+		}
+		
+		
 	}
 
 	/**
@@ -472,6 +491,20 @@ public class PlanesView extends View {
 		mPointerHaloBorderPaint.setStrokeWidth(mPointerHaloBorderWidth);
 		mPointerHaloBorderPaint.setStyle(Paint.Style.STROKE);
 
+		mWychylenieMaxPaint = new Paint();
+		mWychylenieMaxPaint.set(mPointerPaint);
+		mWychylenieMaxPaint.setColor(mPointerHaloColor);
+		mWychylenieMaxPaint.setStyle(Paint.Style.STROKE);
+		mWychylenieMaxPaint.setStrokeCap(Paint.Cap.SQUARE);
+		mWychylenieMaxPaint.setStrokeWidth((float) (1.5*mPointerRadius + 0.5*mPointerHaloWidth));
+		
+		mWychylenieMinPaint = new Paint();
+		mWychylenieMinPaint.set(mPointerPaint);
+		mWychylenieMinPaint.setColor(Color.argb(135, 170, 0, 0));
+		mWychylenieMinPaint.setStyle(Paint.Style.STROKE);
+		mWychylenieMinPaint.setStrokeCap(Paint.Cap.SQUARE);
+		mWychylenieMinPaint.setStrokeWidth((float)(0.5* mPointerRadius + 0.5* mPointerHaloWidth));
+		
 	}
 
 	/**
@@ -528,6 +561,7 @@ public class PlanesView extends View {
 		
 		mCircleProgressPath = new Path();
 		mCircleProgressPath.addArc(mCircleRectF, mStartAngle, mProgressDegrees);
+		
 	}
 
 	/**
@@ -539,6 +573,16 @@ public class PlanesView extends View {
 		mCircleRectF60.set(-mCircleWidth*2/3, -mCircleHeight*2/3, mCircleWidth*2/3, mCircleHeight*2/3);
 	}
 
+	float baseAngle = -90;
+	
+	public void setWychylenieMax(int position, float value){
+		mWychyleniaMax[position]=value;
+	}
+	
+	public void setWychylenieMin(int position, float value){
+		mWychyleniaMin[position]=value;
+	}
+	
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
@@ -548,6 +592,20 @@ public class PlanesView extends View {
 		canvas.drawPath(mCirclePath, mCirclePaint);
 		canvas.drawPath(mCirclePath30, mCirclePaint);
 		canvas.drawPath(mCirclePath60, mCirclePaint);
+		
+		for(int i=0; i<mWychyleniaMax.length; i++){
+			float ratioMax = mWychyleniaMax[i]/90f;
+			RectF mMaxRect = new RectF(-mCircleWidth*ratioMax, -mCircleHeight*ratioMax, mCircleWidth*ratioMax, mCircleHeight*ratioMax);
+			int colorUpdate = Color.argb(170, (int)(255*(1-ratioMax)), (int)(255*ratioMax), 0);
+			mWychylenieMaxPaint.setColor(colorUpdate);
+			canvas.drawArc(mMaxRect, baseAngle + i*45-20, 40, false, mWychylenieMaxPaint);
+		}
+		
+		for(int i=0; i<mWychyleniaMin.length; i++){
+			float ratioMin = mWychyleniaMin[i]/90f;
+			RectF mMinRect = new RectF(-mCircleWidth*ratioMin, -mCircleHeight*ratioMin, mCircleWidth*ratioMin, mCircleHeight*ratioMin);
+			canvas.drawArc(mMinRect, baseAngle + i*45-20, 40, false, mWychylenieMinPaint);
+		}
 		
 //		canvas.drawPath(mCircleProgressPath, mCircleProgressGlowPaint);
 //		canvas.drawPath(mCircleProgressPath, mCircleProgressPaint);
@@ -639,191 +697,6 @@ public class PlanesView extends View {
 		}
 
 		recalculateAll();
-	}
-
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		// Convert coordinates to our internal coordinate system
-		float x = event.getX() - getWidth() / 2;
-		float y = event.getY() - getHeight() / 2;
-
-		// Get the distance from the center of the circle in terms of x and y
-		float distanceX = mCircleRectF.centerX() - x;
-		float distanceY = mCircleRectF.centerY() - y;
-
-		// Get the distance from the center of the circle in terms of a radius
-		float touchEventRadius = (float) Math.sqrt((Math.pow(distanceX, 2) + Math.pow(distanceY, 2)));
-
-		float minimumTouchTarget = MIN_TOUCH_TARGET_DP * DPTOPX_SCALE; // Convert minimum touch target into px
-		float additionalRadius; // Either uses the minimumTouchTarget size or larger if the ring/pointer is larger
-
-		if (mCircleStrokeWidth < minimumTouchTarget) { // If the width is less than the minimumTouchTarget, use the minimumTouchTarget
-			additionalRadius = minimumTouchTarget / 2;
-		}
-		else {
-			additionalRadius = mCircleStrokeWidth / 2; // Otherwise use the width
-		}
-		float outerRadius = Math.max(mCircleHeight, mCircleWidth) + additionalRadius; // Max outer radius of the circle, including the minimumTouchTarget or wheel width
-		float innerRadius = Math.min(mCircleHeight, mCircleWidth) - additionalRadius; // Min inner radius of the circle, including the minimumTouchTarget or wheel width
-
-		if (mPointerRadius < (minimumTouchTarget / 2)) { // If the pointer radius is less than the minimumTouchTarget, use the minimumTouchTarget
-			additionalRadius = minimumTouchTarget / 2;
-		}
-		else {
-			additionalRadius = mPointerRadius; // Otherwise use the radius
-		}
-
-		float touchAngle;
-		touchAngle = (float) ((java.lang.Math.atan2(y, x) / Math.PI * 180) % 360); // Verified
-		touchAngle = (touchAngle < 0 ? 360 + touchAngle : touchAngle); // Verified
-
-		cwDistanceFromStart = touchAngle - mStartAngle; // Verified
-		cwDistanceFromStart = (cwDistanceFromStart < 0 ? 360f + cwDistanceFromStart : cwDistanceFromStart); // Verified
-		ccwDistanceFromStart = 360f - cwDistanceFromStart; // Verified
-
-		cwDistanceFromEnd = touchAngle - mEndAngle; // Verified
-		cwDistanceFromEnd = (cwDistanceFromEnd < 0 ? 360f + cwDistanceFromEnd : cwDistanceFromEnd); // Verified
-		ccwDistanceFromEnd = 360f - cwDistanceFromEnd; // Verified
-
-		switch (event.getAction()) {
-		case MotionEvent.ACTION_DOWN:
-			// These are only used for ACTION_DOWN for handling if the pointer was the part that was touched
-			float pointerRadiusDegrees = (float) ((mPointerRadius * 180) / (Math.PI * Math.max(mCircleHeight, mCircleWidth)));
-			cwDistanceFromPointer = touchAngle - mPointerPosition;
-			cwDistanceFromPointer = (cwDistanceFromPointer < 0 ? 360f + cwDistanceFromPointer : cwDistanceFromPointer);
-			ccwDistanceFromPointer = 360f - cwDistanceFromPointer;
-			// This is for if the first touch is on the actual pointer. 
-			if (((touchEventRadius >= innerRadius) && (touchEventRadius <= outerRadius)) && ( (cwDistanceFromPointer <= pointerRadiusDegrees) || (ccwDistanceFromPointer <= pointerRadiusDegrees)) ) {
-				setProgressBasedOnAngle(mPointerPosition);
-				lastCWDistanceFromStart = cwDistanceFromStart;
-				mIsMovingCW = true;
-				mPointerHaloPaint.setAlpha(mPointerAlphaOnTouch);
-				mPointerHaloPaint.setColor(mPointerHaloColorOnTouch);
-				recalculateAll();
-				invalidate();
-				if (mOnCircularSeekBarChangeListener != null) {
-					mOnCircularSeekBarChangeListener.onStartTrackingTouch(this);
-				}
-				mUserIsMovingPointer = true;
-				lockAtEnd = false;
-				lockAtStart = false;
-			} else if (cwDistanceFromStart > mTotalCircleDegrees) { // If the user is touching outside of the start AND end
-				mUserIsMovingPointer = false;
-				return false;
-			} else if ((touchEventRadius >= innerRadius) && (touchEventRadius <= outerRadius)) { // If the user is touching near the circle
-				setProgressBasedOnAngle(touchAngle);
-				lastCWDistanceFromStart = cwDistanceFromStart;
-				mIsMovingCW = true;
-				mPointerHaloPaint.setAlpha(mPointerAlphaOnTouch);
-				mPointerHaloPaint.setColor(mPointerHaloColorOnTouch);
-				recalculateAll();
-				invalidate();
-				if (mOnCircularSeekBarChangeListener != null) {
-					mOnCircularSeekBarChangeListener.onStartTrackingTouch(this);
-					mOnCircularSeekBarChangeListener.onProgressChanged(this, mProgress, true);
-				}
-				mUserIsMovingPointer = true;
-				lockAtEnd = false;
-				lockAtStart = false;
-			} else { // If the user is not touching near the circle
-				mUserIsMovingPointer = false;
-				return false;
-			}
-			break;
-		case MotionEvent.ACTION_MOVE:
-			if (mUserIsMovingPointer) {
-				if (lastCWDistanceFromStart < cwDistanceFromStart) {
-					if ((cwDistanceFromStart - lastCWDistanceFromStart) > 180f && !mIsMovingCW) {
-						lockAtStart = true;
-						lockAtEnd = false;
-					} else {
-						mIsMovingCW = true;
-					}
-				} else {
-					if ((lastCWDistanceFromStart - cwDistanceFromStart) > 180f && mIsMovingCW) {
-						lockAtEnd = true;
-						lockAtStart = false;
-					} else {
-						mIsMovingCW = false;
-					}
-				}
-
-				if (lockAtStart && mIsMovingCW) {
-					lockAtStart = false;
-				}
-				if (lockAtEnd && !mIsMovingCW) {
-					lockAtEnd = false;
-				}
-				if (lockAtStart && !mIsMovingCW && (ccwDistanceFromStart > 90)) {
-					lockAtStart = false;
-				}
-				if (lockAtEnd && mIsMovingCW && (cwDistanceFromEnd > 90)) {
-					lockAtEnd = false;
-				}
-				// Fix for passing the end of a semi-circle quickly
-				if (!lockAtEnd && cwDistanceFromStart > mTotalCircleDegrees && mIsMovingCW && lastCWDistanceFromStart < mTotalCircleDegrees) {
-					lockAtEnd = true;
-				}
-
-				if (lockAtStart) {
-					// TODO: Add a check if mProgress is already 0, in which case don't call the listener
-					mProgress = 0;
-					recalculateAll();
-					invalidate();
-					if (mOnCircularSeekBarChangeListener != null) {
-						mOnCircularSeekBarChangeListener.onProgressChanged(this, mProgress, true);
-					}
-				} else if (lockAtEnd) {
-					mProgress = mMax;
-					recalculateAll();
-					invalidate();
-					if (mOnCircularSeekBarChangeListener != null) {
-						mOnCircularSeekBarChangeListener.onProgressChanged(this, mProgress, true);
-					}
-				} else if ((mMoveOutsideCircle) || (touchEventRadius <= outerRadius)) {
-					if (!(cwDistanceFromStart > mTotalCircleDegrees)) {
-						setProgressBasedOnAngle(touchAngle);
-					}
-					recalculateAll();
-					invalidate();
-					if (mOnCircularSeekBarChangeListener != null) {
-						mOnCircularSeekBarChangeListener.onProgressChanged(this, mProgress, true);
-					}
-				} else {
-					break;
-				}
-
-				lastCWDistanceFromStart = cwDistanceFromStart;
-			} else {
-				return false;
-			}
-			break;
-		case MotionEvent.ACTION_UP:
-			mPointerHaloPaint.setAlpha(mPointerAlpha);
-			mPointerHaloPaint.setColor(mPointerHaloColor);
-			if (mUserIsMovingPointer) {
-				mUserIsMovingPointer = false;
-				invalidate();
-				if (mOnCircularSeekBarChangeListener != null) {
-					mOnCircularSeekBarChangeListener.onStopTrackingTouch(this);
-				}
-			} else {
-				return false;
-			}
-			break;
-		case MotionEvent.ACTION_CANCEL: // Used when the parent view intercepts touches for things like scrolling
-			mPointerHaloPaint.setAlpha(mPointerAlpha);
-			mPointerHaloPaint.setColor(mPointerHaloColor);
-			mUserIsMovingPointer = false;
-			invalidate();
-			break;
-		}
-
-		if (event.getAction() == MotionEvent.ACTION_MOVE && getParent() != null) {
-			getParent().requestDisallowInterceptTouchEvent(true);
-		}
-
-		return true;
 	}
 
 	private void init(AttributeSet attrs, int defStyle) {

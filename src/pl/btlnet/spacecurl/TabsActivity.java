@@ -1,5 +1,6 @@
 package pl.btlnet.spacecurl;
 
+import pl.btlnet.spacecurl.ui.PlanesView;
 import pl.btlnet.spacecurl.ui.RotationView;
 import pl.btlnet.spacecurl.ui.ZoomOutPageTransformer;
 import android.animation.AnimatorInflater;
@@ -25,12 +26,16 @@ import android.support.v4.view.ViewPager;
 import android.transition.Visibility;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class TabsActivity extends FragmentActivity implements TabListener, SensorEventListener {
 	CollectionPagerAdapter mCollectionPagerAdapter;
@@ -95,19 +100,57 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		super.onResume();
 		mWakeLock.acquire();
 		
-		rotationView = (RotationView) findViewById(R.id.rotationView);
+		OnSeekBarChangeListener progressMonitor = new SeekBar.OnSeekBarChangeListener() {
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				int position = seekBar.getSecondaryProgress();
+				PlanesView planesView = (PlanesView) findViewById(R.id.rotationView);
+				planesView.setWychylenieMax(position, progress);
+				planesView.invalidate();
+			}
+		};
+		
+		try {
+			((SeekBar) findViewById(R.id.SeekBar0)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) findViewById(R.id.SeekBar1)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) findViewById(R.id.SeekBar2)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) findViewById(R.id.SeekBar3)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) findViewById(R.id.SeekBar4)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) findViewById(R.id.SeekBar5)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) findViewById(R.id.SeekBar6)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) findViewById(R.id.SeekBar7)).setOnSeekBarChangeListener(progressMonitor);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+		
+//		rotationView = (RotationView) findViewById(R.id.rotationView);
 //		rotationSectors = (RotationView) findViewById(R.id.rotationSectors);
 //		rotationZ = (RotationView) findViewById(R.id.rotationZ);
 //		rotationScalar = (RotationView) findViewById(R.id.rotationScalar);
 
 		if(rotationView==null) return; 
 		
-		rotationView.setMax(180);
+//		rotationView.setMax(180);
 //		rotationSectors.setMax(180);
 //		rotationZ.setMax(180);
 //		rotationScalar.setMax(180);
 		
-		startSensing(mSensorManager);
+//		startSensing(mSensorManager);
 	}
 	
 	@Override
@@ -274,7 +317,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 
 		// final int data = (int) (10*event.values[usedValueIndex]);
 
-		rotationView.setProgress(dataX);
+//		rotationView.setProgress(dataX);
 //		rotationSectors.setProgress(dataY);
 //		rotationZ.setProgress(dataZ);
 //		rotationScalar.setProgress(dataS);
@@ -293,11 +336,11 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	}
 
 	public void startSensing(SensorManager sm) {
-		if (mRotationVector == null) {
-			initSensor(sm);
-		}
-		sm.registerListener(this, mRotationVector,
-				SensorManager.SENSOR_DELAY_GAME);
+//		if (mRotationVector == null) {
+//			initSensor(sm);
+//		}
+//		sm.registerListener(this, mRotationVector,
+//				SensorManager.SENSOR_DELAY_UI);
 	}
 
 	public void stopSensing(SensorManager sm) {
