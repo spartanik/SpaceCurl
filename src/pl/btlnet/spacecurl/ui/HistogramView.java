@@ -17,10 +17,13 @@ import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 
-public class PlanesView extends View {
+public class HistogramView extends View{
 
 	/**
 	 * Used to scale the dp units to pixels
@@ -146,8 +149,6 @@ public class PlanesView extends View {
 	
 	private RectF mCircleRectF30 = new RectF();
 	private RectF mCircleRectF60 = new RectF();
-	private RectF mWycylenieRectMax = new RectF();
-	private RectF mWycylenieRectMin = new RectF();
 
 	/**
 	 * Holds the color value for {@code mPointerPaint} before the {@code Paint} instance is created.
@@ -207,9 +208,6 @@ public class PlanesView extends View {
 	
 	private Path mCirclePath30;
 	private Path mCirclePath60;
-
-	private float[] mWychyleniaMax = new float[8];
-	private float[] mWychyleniaMin = new float[8];
 	
 	/**
 	 * {@code Path} used to draw the progress on the circle.
@@ -430,15 +428,6 @@ public class PlanesView extends View {
 			mEndAngle = mEndAngle - .1f;
 		}
 
-		for(int i=0; i<mWychyleniaMax.length; i++){
-			mWychyleniaMax[i]=10*i;
-		}
-		
-		for(int i=0; i<mWychyleniaMin.length; i++){
-			mWychyleniaMin[i]=15;
-		}
-		
-		
 	}
 
 	/**
@@ -573,26 +562,39 @@ public class PlanesView extends View {
 		mCircleRectF60.set(-mCircleWidth*2/3, -mCircleHeight*2/3, mCircleWidth*2/3, mCircleHeight*2/3);
 	}
 
+	final int rBins = 18;
+	final int phiBins = 72;
 
+	private int[][] mWychylenia = new int[rBins][phiBins]; //r, phi
 	
-	public void setWychylenieMax(int position, float value){
-		mWychyleniaMax[position]=value;
+	public void putWychylenie(float r, float phi){
+		int radius = (int) Math.floor(r/5f);
+		int angle = (int) Math.floor(phi/5f);
+		if(radius<rBins && angle <phiBins){
+			Log.e("TAG", "[r,phi]=\t" + radius + "\t" + angle);
+			mWychylenia[radius][angle]++;
+		}else{
+			Log.e("TAG", "?! [r,phi]=\t"+radius +"\t"+angle);
+		}
+		
 	}
 	
-	public void setWychylenieMin(int position, float value){
-		mWychyleniaMin[position]=value;
-	}
-	
-	void drawAngleArray(float[] anglesArray, Canvas canvas, Paint p) {
+	void drawAngleArray(int[][] anglesArray, Canvas canvas, Paint p) {
 		float baseAngle = -90;
 		
-		for(int i=0; i<anglesArray.length; i++){
-			float ratio = anglesArray[i]/90f;
-			RectF mMaxRect = new RectF(-mCircleWidth*ratio, -mCircleHeight*ratio, mCircleWidth*ratio, mCircleHeight*ratio);
-			int colorUpdate = Color.argb(170, (int)(255*(1-ratio)), (int)(255*ratio), 0);
-			p.setColor(colorUpdate);
-			p.setStrokeWidth((float)(30* ratio + 1.5*mPointerHaloWidth));
-			canvas.drawArc(mMaxRect, baseAngle + i*45-20, 40, false, p);
+		for(int j=0; j<rBins; j++){
+			for (int i = 0; i < phiBins; i++) {
+				float frequencyRatio = anglesArray[j][i] / 9f;
+				int colorUpdate = Color.argb(170, (int)(255*(frequencyRatio)), (int)(255*(1-frequencyRatio)), 0);
+				p.setColor(colorUpdate);
+				
+				float rRatio = j/(float)rBins;
+				RectF mRect = new RectF(-mCircleWidth * rRatio,	-mCircleHeight * rRatio, 
+						mCircleWidth * rRatio, mCircleHeight * rRatio);
+
+				p.setStrokeWidth((float) (-1 + mCircleWidth / (float)rBins));
+				canvas.drawArc(mRect, baseAngle + i * 5 - 1.4f, 2.6f, false, p); //co 5 stopni
+			}
 		}
 	}
 	
@@ -606,16 +608,7 @@ public class PlanesView extends View {
 		canvas.drawPath(mCirclePath30, mCirclePaint);
 		canvas.drawPath(mCirclePath60, mCirclePaint);
 		
-		drawAngleArray(mWychyleniaMax, canvas, mWychylenieMaxPaint); 
-		drawAngleArray(mWychyleniaMin, canvas, mWychylenieMinPaint);
-
-		canvas.drawPath(mCirclePath, mCircleFillPaint);
-
-		canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius + mPointerHaloWidth, mPointerHaloPaint);
-		canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius, mPointerPaint);
-		if (mUserIsMovingPointer) {
-			canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius + mPointerHaloWidth + (mPointerHaloBorderWidth / 2f), mPointerHaloBorderPaint);
-		}
+		drawAngleArray(mWychylenia, canvas, mWychylenieMaxPaint);
 	}
 
 	/**
@@ -708,17 +701,17 @@ public class PlanesView extends View {
 		initPaints();
 	}
 
-	public PlanesView(Context context) {
+	public HistogramView(Context context) {
 		super(context);
 		init(null, 0);
 	}
 
-	public PlanesView(Context context, AttributeSet attrs) {
+	public HistogramView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		init(attrs, 0);
 	}
 
-	public PlanesView(Context context, AttributeSet attrs, int defStyle) {
+	public HistogramView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		init(attrs, defStyle);
 	}
@@ -774,11 +767,11 @@ public class PlanesView extends View {
 	*/
 	public interface OnCircularSeekBarChangeListener {
 
-		public abstract void onProgressChanged(PlanesView circularSeekBar, int progress, boolean fromUser);
+		public abstract void onProgressChanged(HistogramView circularSeekBar, int progress, boolean fromUser);
 
-		public abstract void onStopTrackingTouch(PlanesView seekBar);
+		public abstract void onStopTrackingTouch(HistogramView seekBar);
 
-		public abstract void onStartTrackingTouch(PlanesView seekBar);
+		public abstract void onStartTrackingTouch(HistogramView seekBar);
 	}
 	
 	/**
@@ -937,5 +930,53 @@ public class PlanesView extends View {
 	public synchronized int getMax() {
 		return mMax;
 	}
+
+
+	//distance from (x, y) to that point (a, b) in the center
+	double distance(float x, float y, float a, float b)
+	{
+	    return Math.sqrt((x - a) * (x - a) + (y - b) * (y - b));
+	}
 	
+		
+//	@Override
+//	public boolean onDragEvent(DragEvent event) {
+////		this.onTouchEvent(event);
+//		return super.onDragEvent(event);
+//	}
+	
+	private void useEvent(MotionEvent me){
+        float xPosition = me.getX()/(getMeasuredWidth());
+        float yPosition = me.getY()/(getMeasuredHeight());
+        
+        double dist = 180*distance(xPosition, yPosition, 0.5f, 0.5f);
+        double phi = Math.toDegrees(Math.atan(yPosition/xPosition));
+        
+        Log.d("TAG", "(\t"+xPosition +",\t"+yPosition+"\t) => \t"+dist+" , \t"+phi);
+        
+        putWychylenie((float)dist, (float)phi);
+        invalidate();
+	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+//        Log.d("TAG", "(Ev)");
+		
+        switch (event.getAction()) {
+        case MotionEvent.ACTION_DOWN:
+        	useEvent(event);
+        	break;
+        case MotionEvent.ACTION_MOVE:
+        	useEvent(event);
+        	break;
+        case MotionEvent.ACTION_UP:
+            
+            break;
+        case MotionEvent.ACTION_CANCEL:
+            break;
+        }
+        return true;
+//		return super.onTouchEvent(event);
+	}
+		
 }

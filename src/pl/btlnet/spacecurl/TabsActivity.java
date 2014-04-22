@@ -226,19 +226,23 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 			int tabLayout = 0;
 			switch (position) {
 			case 0:
-				tabLayout = R.layout.kalibracja;
+				tabLayout = R.layout.dane;
 				break;
 			case 1:
-				tabLayout = R.layout.cwiczenia;
+				tabLayout = R.layout.statyczny;
 				break;
 			case 2:
-				tabLayout = R.layout.analiza;
+				tabLayout = R.layout.plaszczyzny;
 				break;
 			case 3:
+				tabLayout = R.layout.plaszczyzny;
+				break;
+			case 4:
 				tabLayout = R.layout.zalecenia;
 				break;
 			}
 
+			
 			View rootView = inflater.inflate(tabLayout, container, false);
 			setGender(rootView);
 			return rootView;
@@ -277,8 +281,17 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	public void chooseMale(View v){
 		Log.d("TAG", "male");
 		ImageView female = (ImageView) findViewById(R.id.femaleImage);
+
+		Animation goneAnimation = AnimationUtils.loadAnimation(this, R.anim.disappear);
+		female.startAnimation(goneAnimation);
+		
+		
 		female.setVisibility(View.GONE);
 		RotationView calibration = (RotationView) findViewById(R.id.calibrationRotationView);
+		
+		
+		Animation comeAnimation = AnimationUtils.loadAnimation(this, R.anim.appear);
+		calibration.startAnimation(comeAnimation);
 		calibration.setVisibility(View.VISIBLE);
 		gender="male";
 	}
@@ -286,9 +299,15 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	public void chooseFemale(View v){
 		Log.d("TAG", "female");
 		ImageView male = (ImageView) findViewById(R.id.maleImage);
+		Animation goneAnimation = AnimationUtils.loadAnimation(this, R.anim.disappear);
+		male.startAnimation(goneAnimation);
 		male.setVisibility(View.GONE);
+		
 		RotationView calibration = (RotationView) findViewById(R.id.calibrationRotationView);
+		Animation comeAnimation = AnimationUtils.loadAnimation(this, R.anim.appear);
+		calibration.startAnimation(comeAnimation);
 		calibration.setVisibility(View.VISIBLE);
+
 		
 		gender="female";
 	}

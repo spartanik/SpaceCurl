@@ -37,9 +37,11 @@
     
     
     <string-array name="tabs_titles">
-        <item>Ćwiczenia</item>
-        <item>Badanie</item>
-        <item>Analiza</item>
+		<item>Dane</item>
+		<item>Statyczny1</item>
+		<item>Statyczny2</item>
+        <item>Płaszczyzny1</item>
+        <item>Płaszczyzny2</item>
         <item>Zalecenia</item>
     </string-array>
     

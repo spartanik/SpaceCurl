@@ -64,7 +64,7 @@ public class SensorsActivity extends Activity implements SensorEventListener {
 		// instantiate our simulation view and set it as the activity's content
 		// mSimulationView = new SimulationView(this);
 		// setContentView(mSimulationView);
-		setContentView(R.layout.kalibracja);
+		setContentView(R.layout.dane);
 
 		rotationView = (RotationView) findViewById(R.id.rotationView);
 //		rotationSectors = (RotationView) findViewById(R.id.rotationSectors);
