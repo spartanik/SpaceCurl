@@ -235,7 +235,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 				tabLayout = R.layout.plaszczyzny;
 				break;
 			case 3:
-				tabLayout = R.layout.plaszczyzny;
+				tabLayout = R.layout.zalecenia;
 				break;
 			case 4:
 				tabLayout = R.layout.zalecenia;

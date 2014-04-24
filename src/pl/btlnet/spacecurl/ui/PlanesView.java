@@ -17,6 +17,7 @@ import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -585,6 +586,15 @@ public class PlanesView extends View {
 	
 	void drawAngleArray(float[] anglesArray, Canvas canvas, Paint p) {
 		float baseAngle = -90;
+		int indexOfMaxValue=0;
+		float maxValue=0;
+		
+		for(int i=0;i<anglesArray.length;i++){
+			if(maxValue<=anglesArray[i]){
+				maxValue=anglesArray[i];
+				indexOfMaxValue=i;
+			}
+		}
 		
 		for(int i=0; i<anglesArray.length; i++){
 			float ratio = anglesArray[i]/90f;
@@ -593,7 +603,18 @@ public class PlanesView extends View {
 			p.setColor(colorUpdate);
 			p.setStrokeWidth((float)(30* ratio + 1.5*mPointerHaloWidth));
 			canvas.drawArc(mMaxRect, baseAngle + i*45-20, 40, false, p);
+
+			if(i==indexOfMaxValue){
+
+				float x = (float) ((mCircleWidth*ratio)*Math.sin(Math.toRadians(i*45)));
+				float y = (float) ((-mCircleHeight*ratio)*Math.cos(Math.toRadians(i*45)));
+				
+				float[] mArcCenter={x, y};
+				canvas.drawCircle(mArcCenter[0], mArcCenter[1], mPointerRadius + mPointerHaloWidth, mPointerHaloPaint);
+				canvas.drawCircle(mArcCenter[0], mArcCenter[1], mPointerRadius, mPointerPaint);
+			}
 		}
+		
 	}
 	
 	@Override
@@ -607,15 +628,15 @@ public class PlanesView extends View {
 		canvas.drawPath(mCirclePath60, mCirclePaint);
 		
 		drawAngleArray(mWychyleniaMax, canvas, mWychylenieMaxPaint); 
-		drawAngleArray(mWychyleniaMin, canvas, mWychylenieMinPaint);
+//		drawAngleArray(mWychyleniaMin, canvas, mWychylenieMinPaint);
 
 		canvas.drawPath(mCirclePath, mCircleFillPaint);
 
-		canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius + mPointerHaloWidth, mPointerHaloPaint);
-		canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius, mPointerPaint);
-		if (mUserIsMovingPointer) {
-			canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius + mPointerHaloWidth + (mPointerHaloBorderWidth / 2f), mPointerHaloBorderPaint);
-		}
+//		canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius + mPointerHaloWidth, mPointerHaloPaint);
+//		canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius, mPointerPaint);
+//		if (mUserIsMovingPointer) {
+//			canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius + mPointerHaloWidth + (mPointerHaloBorderWidth / 2f), mPointerHaloBorderPaint);
+//		}
 	}
 
 	/**

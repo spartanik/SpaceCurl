@@ -570,7 +570,8 @@ public class HistogramView extends View{
 	public void putWychylenie(float r, float phi){
 		int radius = (int) Math.floor(r/5f);
 		int angle = (int) Math.floor(phi/5f);
-		if(radius<rBins && angle <phiBins){
+		if(radius>=0 && radius<rBins && 
+				angle>=0 && angle <phiBins){
 			Log.e("TAG", "[r,phi]=\t" + radius + "\t" + angle);
 			mWychylenia[radius][angle]++;
 		}else{
@@ -584,8 +585,8 @@ public class HistogramView extends View{
 		
 		for(int j=0; j<rBins; j++){
 			for (int i = 0; i < phiBins; i++) {
-				float frequencyRatio = anglesArray[j][i] / 9f;
-				int colorUpdate = Color.argb(170, (int)(255*(frequencyRatio)), (int)(255*(1-frequencyRatio)), 0);
+				float frequencyRatio = anglesArray[j][i] / 3f;
+				int colorUpdate = Color.argb(190, (int)(255*(frequencyRatio)), (int)(255*(1-frequencyRatio)), 0);
 				p.setColor(colorUpdate);
 				
 				float rRatio = j/(float)rBins;
@@ -593,7 +594,8 @@ public class HistogramView extends View{
 						mCircleWidth * rRatio, mCircleHeight * rRatio);
 
 				p.setStrokeWidth((float) (-1 + mCircleWidth / (float)rBins));
-				canvas.drawArc(mRect, baseAngle + i * 5 - 1.4f, 2.6f, false, p); //co 5 stopni
+				float singleStroke = (360/phiBins)/2;
+				canvas.drawArc(mRect, baseAngle + i * (360/phiBins) - singleStroke/2.5f, singleStroke*0.8f, false, p); //co 5 stopni
 			}
 		}
 	}
@@ -949,8 +951,12 @@ public class HistogramView extends View{
         float xPosition = me.getX()/(getMeasuredWidth());
         float yPosition = me.getY()/(getMeasuredHeight());
         
-        double dist = 180*distance(xPosition, yPosition, 0.5f, 0.5f);
-        double phi = Math.toDegrees(Math.atan(yPosition/xPosition));
+        double dist = 200*distance(xPosition, yPosition, 0.5f, 0.5f);
+        double phi = 90+Math.toDegrees(
+        		Math.atan(
+        		(yPosition-0.5f)/(xPosition-0.5f))
+        		);
+        phi=Math.signum((xPosition-0.5f))<0?phi+180:phi;
         
         Log.d("TAG", "(\t"+xPosition +",\t"+yPosition+"\t) => \t"+dist+" , \t"+phi);
         
@@ -960,7 +966,6 @@ public class HistogramView extends View{
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-//        Log.d("TAG", "(Ev)");
 		
         switch (event.getAction()) {
         case MotionEvent.ACTION_DOWN:
