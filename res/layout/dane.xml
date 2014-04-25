@@ -52,5 +52,24 @@
         android:src="@drawable/male" 
                 android:clickable="true"
         android:onClick="chooseMale"/>
-
+    
+    
+    <LinearLayout 
+            android:layout_width="wrap_content" 
+    android:layout_height="wrap_content" 
+    android:orientation="vertical"
+    android:layout_weight="1">
+                <SeekBar
+                android:id="@+id/SeekBarPhi"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" 
+                        android:layout_margin="10dp"
+                        />
+            <SeekBar
+                android:id="@+id/SeekBarTheta"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                
+                        android:layout_margin="10dp" />
+	</LinearLayout>
 </LinearLayout>

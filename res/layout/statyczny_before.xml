@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+android:id="@+id/tab1"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:weightSum="3">
+
+        <pl.btlnet.spacecurl.ui.HistogramView
+        android:id="@+id/histogramViewBefore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" 
+	    app:pointer_radius="10"
+	    app:pointer_color="#FF33B5E5"
+      	app:pointer_halo_color="#8733B5E5"
+      	android:layout_weight="1"
+        />
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:src="@drawable/oczy_otwarte" />
+
+</LinearLayout>

@@ -1,8 +1,32 @@
+/*
+ * 
+ * Copyright 2013 Matt Joseph
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * 
+ * 
+ * This custom view/widget was inspired and guided by:
+ * 
+ * HoloCircleSeekBar - Copyright 2012 Jes�s Manzano
+ * HoloColorPicker - Copyright 2012 Lars Werkman (Designed by Marie Schweiz)
+ * 
+ * Although I did not used the code from either project directly, they were both used as 
+ * reference material, and as a result, were extremely helpful.
+ */
+
 package pl.btlnet.spacecurl.ui;
 
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import pl.btlnet.spacecurl.R;
@@ -18,15 +42,12 @@ import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.text.format.Time;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 
-public class HistogramView extends View{
+public class SensorView extends View {
 
 	/**
 	 * Used to scale the dp units to pixels
@@ -98,9 +119,6 @@ public class HistogramView extends View{
 	 */
 	private Paint mPointerHaloBorderPaint;
 
-	private Paint mWychylenieMaxPaint;
-	private Paint mWychylenieMinPaint;
-	
 	/**
 	 * The width of the circle (in pixels).
 	 */
@@ -211,7 +229,7 @@ public class HistogramView extends View{
 	
 	private Path mCirclePath30;
 	private Path mCirclePath60;
-	
+
 	/**
 	 * {@code Path} used to draw the progress on the circle.
 	 */
@@ -431,6 +449,7 @@ public class HistogramView extends View{
 			mEndAngle = mEndAngle - .1f;
 		}
 
+
 	}
 
 	/**
@@ -483,20 +502,6 @@ public class HistogramView extends View{
 		mPointerHaloBorderPaint.setStrokeWidth(mPointerHaloBorderWidth);
 		mPointerHaloBorderPaint.setStyle(Paint.Style.STROKE);
 
-		mWychylenieMaxPaint = new Paint();
-		mWychylenieMaxPaint.set(mPointerPaint);
-		mWychylenieMaxPaint.setColor(mPointerHaloColor);
-		mWychylenieMaxPaint.setStyle(Paint.Style.STROKE);
-		mWychylenieMaxPaint.setStrokeCap(Paint.Cap.SQUARE);
-		mWychylenieMaxPaint.setStrokeWidth((float) (1.5*mPointerRadius + 0.5*mPointerHaloWidth));
-		
-		mWychylenieMinPaint = new Paint();
-		mWychylenieMinPaint.set(mPointerPaint);
-		mWychylenieMinPaint.setColor(Color.argb(135, 170, 0, 0));
-		mWychylenieMinPaint.setStyle(Paint.Style.STROKE);
-		mWychylenieMinPaint.setStrokeCap(Paint.Cap.SQUARE);
-		mWychylenieMinPaint.setStrokeWidth((float)(0.5* mPointerRadius + 0.5* mPointerHaloWidth));
-		
 	}
 
 	/**
@@ -553,7 +558,6 @@ public class HistogramView extends View{
 		
 		mCircleProgressPath = new Path();
 		mCircleProgressPath.addArc(mCircleRectF, mStartAngle, mProgressDegrees);
-		
 	}
 
 	/**
@@ -565,69 +569,6 @@ public class HistogramView extends View{
 		mCircleRectF60.set(-mCircleWidth*2/3, -mCircleHeight*2/3, mCircleWidth*2/3, mCircleHeight*2/3);
 	}
 
-	final int rBins = 18;
-	final int phiBins = 72;
-
-	private int[][] mWychylenia = new int[rBins][phiBins]; //r, phi
-	
-	public void putWychylenie(float r, float phi){
-		int radius = (int) Math.floor(r/5f);
-		int angle = (int) Math.floor(phi/5f);
-		if(radius>=0 && radius<rBins && 
-				angle>=0 && angle <phiBins){
-			Log.e("TAG", "[r,phi]=\t" + radius + "\t" + angle);
-			mWychylenia[radius][angle]++;
-		}else{
-			Log.e("TAG", "?! [r,phi]=\t"+radius +"\t"+angle);
-		}
-		
-	}
-	
-	
-	void drawEmptyPlane(Canvas canvas, Paint p) {
-		float baseAngle = -90;
-
-		int colorUpdate = Color.argb(120, 0, 255, 0);
-		p.setColor(colorUpdate);
-		
-		for(int j=0; j<rBins; j++){
-			for (int i = 0; i < phiBins; i++) {
-				
-				float rRatio = j/(float)rBins;
-				RectF mRect = new RectF(-mCircleWidth * rRatio,	-mCircleHeight * rRatio, 
-						mCircleWidth * rRatio, mCircleHeight * rRatio);
-
-				p.setStrokeWidth((float) (-1 + mCircleWidth / (float)rBins));
-				float singleStroke = (360/phiBins)/2;
-				canvas.drawArc(mRect, baseAngle + i * (360/phiBins) - singleStroke/2.5f, singleStroke*0.8f, false, p); //co 5 stopni
-			}
-		}
-	}
-	
-	
-	void drawAngleArray(int[][] anglesArray, Canvas canvas, Paint p) {
-		float baseAngle = -90;
-		
-		for(int j=0; j<rBins; j++){
-			for (int i = 0; i < phiBins; i++) {
-				
-				if(anglesArray[j][i]==0) continue;
-				
-				float frequencyRatio = anglesArray[j][i] / 3f;
-				int colorUpdate = Color.argb(190, (int)(255*(frequencyRatio)), (int)(255*(1-frequencyRatio)), 0);
-				p.setColor(colorUpdate);
-				
-				float rRatio = j/(float)rBins;
-				RectF mRect = new RectF(-mCircleWidth * rRatio,	-mCircleHeight * rRatio, 
-						mCircleWidth * rRatio, mCircleHeight * rRatio);
-
-				p.setStrokeWidth((float) (-1 + mCircleWidth / (float)rBins));
-				float singleStroke = (360/phiBins)/2;
-				canvas.drawArc(mRect, baseAngle + i * (360/phiBins) - singleStroke/2.5f, singleStroke*0.8f, false, p); //co 5 stopni
-			}
-		}
-	}
-	
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
@@ -638,11 +579,64 @@ public class HistogramView extends View{
 		canvas.drawPath(mCirclePath30, mCirclePaint);
 		canvas.drawPath(mCirclePath60, mCirclePaint);
 		
-		drawEmptyPlane(canvas, mWychylenieMaxPaint);
-		
-		drawAngleArray(mWychylenia, canvas, mWychylenieMaxPaint);
+//		canvas.drawPath(mCircleProgressPath, mCircleProgressGlowPaint);
+//		canvas.drawPath(mCircleProgressPath, mCircleProgressPaint);
+
+		canvas.drawPath(mCirclePath, mCircleFillPaint);
+
+		canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius + mPointerHaloWidth, mPointerHaloPaint);
+		canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius, mPointerPaint);
+		if (mUserIsMovingPointer) {
+			canvas.drawCircle(mPointerPositionXY[0], mPointerPositionXY[1], mPointerRadius + mPointerHaloWidth + (mPointerHaloBorderWidth / 2f), mPointerHaloBorderPaint);
+		}
 	}
 
+	
+	double distance(float x, float y, float a, float b)
+	{
+	    return Math.sqrt((x - a) * (x - a) + (y - b) * (y - b));
+	}
+	
+	private void useEvent(MotionEvent me){
+        float xPosition = me.getX()/(getMeasuredWidth());
+        float yPosition = me.getY()/(getMeasuredHeight());
+        
+        double dist = 200*distance(xPosition, yPosition, 0.5f, 0.5f);
+        double phi = 90+Math.toDegrees(
+        		Math.atan(
+        		(yPosition-0.5f)/(xPosition-0.5f))
+        		);
+        phi=Math.signum((xPosition-0.5f))<0?phi+180:phi;
+        
+        Log.d("TAG", "(\t"+xPosition +",\t"+yPosition+"\t) => \t"+dist+" , \t"+phi);
+        
+        mPointerPositionXY[0]=(float) dist;
+        mPointerPositionXY[1]=(float) phi;
+	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		
+        switch (event.getAction()) {
+        case MotionEvent.ACTION_DOWN:
+        	useEvent(event);
+        	break;
+        case MotionEvent.ACTION_MOVE:
+        	useEvent(event);
+        	break;
+        case MotionEvent.ACTION_UP:
+            
+            break;
+        case MotionEvent.ACTION_CANCEL:
+            break;
+        }
+        return true;
+//		return super.onTouchEvent(event);
+	}
+	
+	
+	
+	
 	/**
 	 * Get the progress of the CircularSeekBar.
 	 * @return The progress of the CircularSeekBar.
@@ -722,6 +716,191 @@ public class HistogramView extends View{
 
 		recalculateAll();
 	}
+//
+//	@Override
+//	public boolean onTouchEvent(MotionEvent event) {
+//		// Convert coordinates to our internal coordinate system
+//		float x = event.getX() - getWidth() / 2;
+//		float y = event.getY() - getHeight() / 2;
+//
+//		// Get the distance from the center of the circle in terms of x and y
+//		float distanceX = mCircleRectF.centerX() - x;
+//		float distanceY = mCircleRectF.centerY() - y;
+//
+//		// Get the distance from the center of the circle in terms of a radius
+//		float touchEventRadius = (float) Math.sqrt((Math.pow(distanceX, 2) + Math.pow(distanceY, 2)));
+//
+//		float minimumTouchTarget = MIN_TOUCH_TARGET_DP * DPTOPX_SCALE; // Convert minimum touch target into px
+//		float additionalRadius; // Either uses the minimumTouchTarget size or larger if the ring/pointer is larger
+//
+//		if (mCircleStrokeWidth < minimumTouchTarget) { // If the width is less than the minimumTouchTarget, use the minimumTouchTarget
+//			additionalRadius = minimumTouchTarget / 2;
+//		}
+//		else {
+//			additionalRadius = mCircleStrokeWidth / 2; // Otherwise use the width
+//		}
+//		float outerRadius = Math.max(mCircleHeight, mCircleWidth) + additionalRadius; // Max outer radius of the circle, including the minimumTouchTarget or wheel width
+//		float innerRadius = Math.min(mCircleHeight, mCircleWidth) - additionalRadius; // Min inner radius of the circle, including the minimumTouchTarget or wheel width
+//
+//		if (mPointerRadius < (minimumTouchTarget / 2)) { // If the pointer radius is less than the minimumTouchTarget, use the minimumTouchTarget
+//			additionalRadius = minimumTouchTarget / 2;
+//		}
+//		else {
+//			additionalRadius = mPointerRadius; // Otherwise use the radius
+//		}
+//
+//		float touchAngle;
+//		touchAngle = (float) ((java.lang.Math.atan2(y, x) / Math.PI * 180) % 360); // Verified
+//		touchAngle = (touchAngle < 0 ? 360 + touchAngle : touchAngle); // Verified
+//
+//		cwDistanceFromStart = touchAngle - mStartAngle; // Verified
+//		cwDistanceFromStart = (cwDistanceFromStart < 0 ? 360f + cwDistanceFromStart : cwDistanceFromStart); // Verified
+//		ccwDistanceFromStart = 360f - cwDistanceFromStart; // Verified
+//
+//		cwDistanceFromEnd = touchAngle - mEndAngle; // Verified
+//		cwDistanceFromEnd = (cwDistanceFromEnd < 0 ? 360f + cwDistanceFromEnd : cwDistanceFromEnd); // Verified
+//		ccwDistanceFromEnd = 360f - cwDistanceFromEnd; // Verified
+//
+//		switch (event.getAction()) {
+//		case MotionEvent.ACTION_DOWN:
+//			// These are only used for ACTION_DOWN for handling if the pointer was the part that was touched
+//			float pointerRadiusDegrees = (float) ((mPointerRadius * 180) / (Math.PI * Math.max(mCircleHeight, mCircleWidth)));
+//			cwDistanceFromPointer = touchAngle - mPointerPosition;
+//			cwDistanceFromPointer = (cwDistanceFromPointer < 0 ? 360f + cwDistanceFromPointer : cwDistanceFromPointer);
+//			ccwDistanceFromPointer = 360f - cwDistanceFromPointer;
+//			// This is for if the first touch is on the actual pointer. 
+//			if (((touchEventRadius >= innerRadius) && (touchEventRadius <= outerRadius)) && ( (cwDistanceFromPointer <= pointerRadiusDegrees) || (ccwDistanceFromPointer <= pointerRadiusDegrees)) ) {
+//				setProgressBasedOnAngle(mPointerPosition);
+//				lastCWDistanceFromStart = cwDistanceFromStart;
+//				mIsMovingCW = true;
+//				mPointerHaloPaint.setAlpha(mPointerAlphaOnTouch);
+//				mPointerHaloPaint.setColor(mPointerHaloColorOnTouch);
+//				recalculateAll();
+//				invalidate();
+//				if (mOnCircularSeekBarChangeListener != null) {
+//					mOnCircularSeekBarChangeListener.onStartTrackingTouch(this);
+//				}
+//				mUserIsMovingPointer = true;
+//				lockAtEnd = false;
+//				lockAtStart = false;
+//			} else if (cwDistanceFromStart > mTotalCircleDegrees) { // If the user is touching outside of the start AND end
+//				mUserIsMovingPointer = false;
+//				return false;
+//			} else if ((touchEventRadius >= innerRadius) && (touchEventRadius <= outerRadius)) { // If the user is touching near the circle
+//				setProgressBasedOnAngle(touchAngle);
+//				lastCWDistanceFromStart = cwDistanceFromStart;
+//				mIsMovingCW = true;
+//				mPointerHaloPaint.setAlpha(mPointerAlphaOnTouch);
+//				mPointerHaloPaint.setColor(mPointerHaloColorOnTouch);
+//				recalculateAll();
+//				invalidate();
+//				if (mOnCircularSeekBarChangeListener != null) {
+//					mOnCircularSeekBarChangeListener.onStartTrackingTouch(this);
+//					mOnCircularSeekBarChangeListener.onProgressChanged(this, mProgress, true);
+//				}
+//				mUserIsMovingPointer = true;
+//				lockAtEnd = false;
+//				lockAtStart = false;
+//			} else { // If the user is not touching near the circle
+//				mUserIsMovingPointer = false;
+//				return false;
+//			}
+//			break;
+//		case MotionEvent.ACTION_MOVE:
+//			if (mUserIsMovingPointer) {
+//				if (lastCWDistanceFromStart < cwDistanceFromStart) {
+//					if ((cwDistanceFromStart - lastCWDistanceFromStart) > 180f && !mIsMovingCW) {
+//						lockAtStart = true;
+//						lockAtEnd = false;
+//					} else {
+//						mIsMovingCW = true;
+//					}
+//				} else {
+//					if ((lastCWDistanceFromStart - cwDistanceFromStart) > 180f && mIsMovingCW) {
+//						lockAtEnd = true;
+//						lockAtStart = false;
+//					} else {
+//						mIsMovingCW = false;
+//					}
+//				}
+//
+//				if (lockAtStart && mIsMovingCW) {
+//					lockAtStart = false;
+//				}
+//				if (lockAtEnd && !mIsMovingCW) {
+//					lockAtEnd = false;
+//				}
+//				if (lockAtStart && !mIsMovingCW && (ccwDistanceFromStart > 90)) {
+//					lockAtStart = false;
+//				}
+//				if (lockAtEnd && mIsMovingCW && (cwDistanceFromEnd > 90)) {
+//					lockAtEnd = false;
+//				}
+//				// Fix for passing the end of a semi-circle quickly
+//				if (!lockAtEnd && cwDistanceFromStart > mTotalCircleDegrees && mIsMovingCW && lastCWDistanceFromStart < mTotalCircleDegrees) {
+//					lockAtEnd = true;
+//				}
+//
+//				if (lockAtStart) {
+//					// TODO: Add a check if mProgress is already 0, in which case don't call the listener
+//					mProgress = 0;
+//					recalculateAll();
+//					invalidate();
+//					if (mOnCircularSeekBarChangeListener != null) {
+//						mOnCircularSeekBarChangeListener.onProgressChanged(this, mProgress, true);
+//					}
+//				} else if (lockAtEnd) {
+//					mProgress = mMax;
+//					recalculateAll();
+//					invalidate();
+//					if (mOnCircularSeekBarChangeListener != null) {
+//						mOnCircularSeekBarChangeListener.onProgressChanged(this, mProgress, true);
+//					}
+//				} else if ((mMoveOutsideCircle) || (touchEventRadius <= outerRadius)) {
+//					if (!(cwDistanceFromStart > mTotalCircleDegrees)) {
+//						setProgressBasedOnAngle(touchAngle);
+//					}
+//					recalculateAll();
+//					invalidate();
+//					if (mOnCircularSeekBarChangeListener != null) {
+//						mOnCircularSeekBarChangeListener.onProgressChanged(this, mProgress, true);
+//					}
+//				} else {
+//					break;
+//				}
+//
+//				lastCWDistanceFromStart = cwDistanceFromStart;
+//			} else {
+//				return false;
+//			}
+//			break;
+//		case MotionEvent.ACTION_UP:
+//			mPointerHaloPaint.setAlpha(mPointerAlpha);
+//			mPointerHaloPaint.setColor(mPointerHaloColor);
+//			if (mUserIsMovingPointer) {
+//				mUserIsMovingPointer = false;
+//				invalidate();
+//				if (mOnCircularSeekBarChangeListener != null) {
+//					mOnCircularSeekBarChangeListener.onStopTrackingTouch(this);
+//				}
+//			} else {
+//				return false;
+//			}
+//			break;
+//		case MotionEvent.ACTION_CANCEL: // Used when the parent view intercepts touches for things like scrolling
+//			mPointerHaloPaint.setAlpha(mPointerAlpha);
+//			mPointerHaloPaint.setColor(mPointerHaloColor);
+//			mUserIsMovingPointer = false;
+//			invalidate();
+//			break;
+//		}
+//
+//		if (event.getAction() == MotionEvent.ACTION_MOVE && getParent() != null) {
+//			getParent().requestDisallowInterceptTouchEvent(true);
+//		}
+//
+//		return true;
+//	}
 
 	private void init(AttributeSet attrs, int defStyle) {
 		final TypedArray attrArray = getContext().obtainStyledAttributes(attrs, R.styleable.CircularSeekBar, defStyle, 0);
@@ -733,17 +912,17 @@ public class HistogramView extends View{
 		initPaints();
 	}
 
-	public HistogramView(Context context) {
+	public SensorView(Context context) {
 		super(context);
 		init(null, 0);
 	}
 
-	public HistogramView(Context context, AttributeSet attrs) {
+	public SensorView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		init(attrs, 0);
 	}
 
-	public HistogramView(Context context, AttributeSet attrs, int defStyle) {
+	public SensorView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		init(attrs, defStyle);
 	}
@@ -799,11 +978,11 @@ public class HistogramView extends View{
 	*/
 	public interface OnCircularSeekBarChangeListener {
 
-		public abstract void onProgressChanged(HistogramView circularSeekBar, int progress, boolean fromUser);
+		public abstract void onProgressChanged(SensorView circularSeekBar, int progress, boolean fromUser);
 
-		public abstract void onStopTrackingTouch(HistogramView seekBar);
+		public abstract void onStopTrackingTouch(SensorView seekBar);
 
-		public abstract void onStartTrackingTouch(HistogramView seekBar);
+		public abstract void onStartTrackingTouch(SensorView seekBar);
 	}
 	
 	/**
@@ -962,62 +1141,5 @@ public class HistogramView extends View{
 	public synchronized int getMax() {
 		return mMax;
 	}
-
-
-	//distance from (x, y) to that point (a, b) in the center
-	double distance(float x, float y, float a, float b)
-	{
-	    return Math.sqrt((x - a) * (x - a) + (y - b) * (y - b));
-	}
 	
-		
-//	@Override
-//	public boolean onDragEvent(DragEvent event) {
-////		this.onTouchEvent(event);
-//		return super.onDragEvent(event);
-//	}
-	float lastUpdateTime=0;
-	
-	private void useEvent(MotionEvent me){
-        float xPosition = me.getX()/(getMeasuredWidth());
-        float yPosition = me.getY()/(getMeasuredHeight());
-        
-        double dist = 200*distance(xPosition, yPosition, 0.5f, 0.5f);
-        double phi = 90+Math.toDegrees(
-        		Math.atan(
-        		(yPosition-0.5f)/(xPosition-0.5f))
-        		);
-        phi=Math.signum((xPosition-0.5f))<0?phi+180:phi;
-        
-        Log.d("TAG", "(\t"+xPosition +",\t"+yPosition+"\t) => \t"+dist+" , \t"+phi);
-        
-        putWychylenie((float)dist, (float)phi);
-		
-		final long now = System.nanoTime();
-		if (now > lastUpdateTime + TimeUnit.MILLISECONDS.toNanos(200)) {
-			invalidate();
-			lastUpdateTime = System.nanoTime();
-		}
-	}
-	
-	@Override
-	public boolean onTouchEvent(MotionEvent event) {
-		
-        switch (event.getAction()) {
-        case MotionEvent.ACTION_DOWN:
-        	useEvent(event);
-        	break;
-        case MotionEvent.ACTION_MOVE:
-        	useEvent(event);
-        	break;
-        case MotionEvent.ACTION_UP:
-            
-            break;
-        case MotionEvent.ACTION_CANCEL:
-            break;
-        }
-        return true;
-//		return super.onTouchEvent(event);
-	}
-		
 }

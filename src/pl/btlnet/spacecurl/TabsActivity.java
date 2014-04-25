@@ -29,6 +29,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -45,10 +46,6 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	private PowerManager mPowerManager;
 	private WindowManager mWindowManager;
 	private WakeLock mWakeLock;
-	private RotationView rotationView;
-	private RotationView rotationSectors;
-	private RotationView rotationZ;
-	private RotationView rotationScalar;
 
 	private Sensor mRotationVector;
 	private long mSensorTimeStamp;
@@ -56,6 +53,10 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+	    getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+	                            WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		
 		setContentView(R.layout.activity_main);
 
 		mCollectionPagerAdapter = new CollectionPagerAdapter(
@@ -64,7 +65,10 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		final ActionBar actionBar = getActionBar();
 		actionBar.show();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		actionBar.setHomeButtonEnabled(false);
+		actionBar.setHomeButtonEnabled(true);
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setCustomView(R.layout.tabs);
+		actionBar.setSubtitle("for BTL Polska Sp. z o.o.");
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mCollectionPagerAdapter);
 		mViewPager.setPageTransformer(true, new ZoomOutPageTransformer());
@@ -82,7 +86,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 					.setText(mCollectionPagerAdapter.getPageTitle(i))
 					.setTabListener(this));
 		}
-
+		
 		// Get an instance of the SensorManager
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// Get an instance of the PowerManager
@@ -92,8 +96,19 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		// Create a bright wake lock
 		mWakeLock = mPowerManager.newWakeLock(
 				PowerManager.SCREEN_BRIGHT_WAKE_LOCK, getClass().getName());
+		actionBar.hide();
 
 	}
+	
+	public void showHideActionBar(View v){
+		final ActionBar actionBar = getActionBar();
+
+		if (actionBar.isShowing())
+			actionBar.hide();
+		else
+			actionBar.show();
+	}
+	
 	
 	@Override
 	protected void onResume() {
@@ -138,19 +153,41 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		}
 
 		
-//		rotationView = (RotationView) findViewById(R.id.rotationView);
-//		rotationSectors = (RotationView) findViewById(R.id.rotationSectors);
-//		rotationZ = (RotationView) findViewById(R.id.rotationZ);
-//		rotationScalar = (RotationView) findViewById(R.id.rotationScalar);
-
-		if(rotationView==null) return; 
 		
-//		rotationView.setMax(180);
-//		rotationSectors.setMax(180);
-//		rotationZ.setMax(180);
-//		rotationScalar.setMax(180);
+		OnSeekBarChangeListener anglesMonitor = new SeekBar.OnSeekBarChangeListener() {
+			
+			float phi,theta=0;
+			
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {	}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				
+				if(seekBar.getId()==R.id.SeekBarPhi) phi = 3.6f*progress;
+				if(seekBar.getId()==R.id.SeekBarTheta) theta = 90-2.5f/10f*progress;
+				
+				RotationView rotView = (RotationView) findViewById(R.id.calibrationRotationView);
+				rotView.updateRotation(phi, theta);
+				Log.d("TAG", "Katy: "+phi + " , "+theta);
+			}
+		};
 		
-//		startSensing(mSensorManager);
+		try {
+			((SeekBar) findViewById(R.id.SeekBarPhi)).setOnSeekBarChangeListener(anglesMonitor);
+			((SeekBar) findViewById(R.id.SeekBarTheta)).setOnSeekBarChangeListener(anglesMonitor);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		
+		
+		
 	}
 	
 	@Override
@@ -182,8 +219,6 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 
 	public class CollectionPagerAdapter extends FragmentPagerAdapter {
 
-		final int NUM_ITEMS = 4; // number of tabs
-
 		public CollectionPagerAdapter(FragmentManager fm) {
 			super(fm);
 
@@ -201,7 +236,11 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 
 		@Override
 		public int getCount() {
-			return NUM_ITEMS;
+			
+			Resources res = getResources();
+			String[] titles = res.getStringArray(R.array.tabs_titles);
+			
+			return titles.length;
 		}
 
 		@Override
@@ -229,17 +268,19 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 				tabLayout = R.layout.dane;
 				break;
 			case 1:
-				tabLayout = R.layout.statyczny;
+				tabLayout = R.layout.statyczny_before;
 				break;
 			case 2:
-				tabLayout = R.layout.plaszczyzny;
+				tabLayout = R.layout.statyczny_after;
 				break;
 			case 3:
-				tabLayout = R.layout.zalecenia;
+				tabLayout = R.layout.plaszczyzny;
 				break;
 			case 4:
 				tabLayout = R.layout.zalecenia;
 				break;
+			default:
+				tabLayout = R.layout.zalecenia;
 			}
 
 			
@@ -317,31 +358,12 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	public void onSensorChanged(SensorEvent event) {
 		if (event.sensor.getType() != Sensor.TYPE_ROTATION_VECTOR)
 			return;
-
-		float mSensorValueX = (float) (2 * Math.asin(event.values[0]));
-		final int dataX = (int) (90 * mSensorValueX);
-
-		float mSensorValueY = (float) (2 * Math.asin(event.values[1]));
-		final int dataY = (int) (90 * mSensorValueY);
-		
-		float mSensorValueZ = (float) (2 * Math.asin(event.values[2]));
-		final int dataZ = (int) (90 * mSensorValueZ);
-		
-		float mSensorValueS = (float) (2 * Math.acos(event.values[2]));
-		final int dataS = (int) (90 * mSensorValueS);
 		
 		mSensorTimeStamp = event.timestamp;
 		mCpuTimeStamp = System.nanoTime();
 		final long now = mSensorTimeStamp + (System.nanoTime() - mCpuTimeStamp);
-
-		// final int data = (int) (10*event.values[usedValueIndex]);
-
-//		rotationView.setProgress(dataX);
-//		rotationSectors.setProgress(dataY);
-//		rotationZ.setProgress(dataZ);
-//		rotationScalar.setProgress(dataS);
 		
-		Log.d("XYZS", dataX + " \t"+dataY+" \t"+dataZ+" \t"+dataS);
+//		Log.d("XYZS", dataX + " \t"+dataY+" \t"+dataZ+" \t"+dataS);
 	}
 
 	@Override
@@ -355,11 +377,11 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	}
 
 	public void startSensing(SensorManager sm) {
-//		if (mRotationVector == null) {
-//			initSensor(sm);
-//		}
-//		sm.registerListener(this, mRotationVector,
-//				SensorManager.SENSOR_DELAY_UI);
+		if (mRotationVector == null) {
+			initSensor(sm);
+		}
+		sm.registerListener(this, mRotationVector,
+				SensorManager.SENSOR_DELAY_UI);
 	}
 
 	public void stopSensing(SensorManager sm) {

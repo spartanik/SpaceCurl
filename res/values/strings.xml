@@ -38,9 +38,14 @@
     
     <string-array name="tabs_titles">
 		<item>Dane</item>
-		<item>Statyczny</item>
+		<item>Statyczny (Otwarte)</item>
+		<item>Statyczny (Zamknięte)</item>
         <item>Płaszczyzny</item>
         <item>Zalecenia</item>
+        <item>Zalecenia2</item>
+        
+        <item>Zalecenia</item>
+        <item>Zalecenia2</item>
     </string-array>
     
 </resources>
