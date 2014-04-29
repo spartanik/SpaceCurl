@@ -1,14 +1,11 @@
 package pl.btlnet.spacecurl.ui;
 
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import pl.btlnet.spacecurl.R;
-
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -18,13 +15,10 @@ import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.text.format.Time;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.DragEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnTouchListener;
 
 public class HistogramView extends View{
 
@@ -241,78 +235,12 @@ public class HistogramView extends View{
 	private boolean mMaintainEqualCircle;
 
 	/**
-	 * Once a user has touched the circle, this determines if moving outside the circle is able 
-	 * to change the position of the pointer (and in turn, the progress).
-	 */
-	private boolean mMoveOutsideCircle;
-
-	/**
-	 * Used for when the user moves beyond the start of the circle when moving counter clockwise.
-	 * Makes it easier to hit the 0 progress mark.
-	 */
-	private boolean lockAtStart = true;
-
-	/**
-	 * Used for when the user moves beyond the end of the circle when moving clockwise.
-	 * Makes it easier to hit the 100% (max) progress mark.
-	 */
-	private boolean lockAtEnd = false;
-
-	/**
-	 * When the user is touching the circle on ACTION_DOWN, this is set to true.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private boolean mUserIsMovingPointer = false;
-
-	/**
-	 * Represents the clockwise distance from {@code mStartAngle} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float cwDistanceFromStart;
-
-	/**
-	 * Represents the counter-clockwise distance from {@code mStartAngle} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float ccwDistanceFromStart;
-
-	/**
-	 * Represents the clockwise distance from {@code mEndAngle} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float cwDistanceFromEnd;
-
-	/**
 	 * Represents the counter-clockwise distance from {@code mEndAngle} to the touch angle.
 	 * Used when touching the CircularSeekBar.
 	 * Currently unused, but kept just in case.
 	 */
 	@SuppressWarnings("unused")
 	private float ccwDistanceFromEnd;
-
-	/**
-	 * The previous touch action value for {@code cwDistanceFromStart}.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float lastCWDistanceFromStart;
-
-	/**
-	 * Represents the clockwise distance from {@code mPointerPosition} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float cwDistanceFromPointer;
-
-	/**
-	 * Represents the counter-clockwise distance from {@code mPointerPosition} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float ccwDistanceFromPointer;
-
-	/**
-	 * True if the user is moving clockwise around the circle, false if moving counter-clockwise.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private boolean mIsMovingCW;
 
 	/**
 	 * The width of the circle used in the {@code RectF} that is used to draw it.
@@ -420,7 +348,7 @@ public class HistogramView extends View{
 		mProgress = attrArray.getInt(R.styleable.CircularSeekBar_progress, DEFAULT_PROGRESS);
 		mCustomRadii = attrArray.getBoolean(R.styleable.CircularSeekBar_use_custom_radii, DEFAULT_USE_CUSTOM_RADII);
 		mMaintainEqualCircle = attrArray.getBoolean(R.styleable.CircularSeekBar_maintain_equal_circle, DEFAULT_MAINTAIN_EQUAL_CIRCLE);
-		mMoveOutsideCircle = attrArray.getBoolean(R.styleable.CircularSeekBar_move_outside_circle, DEFAULT_MOVE_OUTSIDE_CIRCLE);
+//		mMoveOutsideCircle = attrArray.getBoolean(R.styleable.CircularSeekBar_move_outside_circle, DEFAULT_MOVE_OUTSIDE_CIRCLE);
 
 		// Modulo 360 right now to avoid constant conversion
 		mStartAngle = ((360f + (attrArray.getFloat((R.styleable.CircularSeekBar_start_angle), DEFAULT_START_ANGLE) % 360f)) % 360f);
@@ -587,7 +515,7 @@ public class HistogramView extends View{
 	void drawEmptyPlane(Canvas canvas, Paint p) {
 		float baseAngle = -90;
 
-		int colorUpdate = Color.argb(120, 0, 255, 0);
+		int colorUpdate = Color.argb(100, 255, 255, 255);
 		p.setColor(colorUpdate);
 		
 		for(int j=0; j<rBins; j++){
@@ -628,19 +556,31 @@ public class HistogramView extends View{
 		}
 	}
 	
+	Bitmap canvasBackground;
+	
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-
-		canvas.translate(this.getWidth() / 2, this.getHeight() / 2);
-
-		canvas.drawPath(mCirclePath, mCirclePaint);
-		canvas.drawPath(mCirclePath30, mCirclePaint);
-		canvas.drawPath(mCirclePath60, mCirclePaint);
 		
-		drawEmptyPlane(canvas, mWychylenieMaxPaint);
+		if (canvasBackground == null) {
 		
-		drawAngleArray(mWychylenia, canvas, mWychylenieMaxPaint);
+			canvasBackground = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
+			Canvas canvasBuffer = new Canvas(canvasBackground);
+
+			canvasBuffer.translate(this.getWidth() / 2, this.getHeight() / 2);
+			
+			canvasBuffer.drawPath(mCirclePath, mCirclePaint);
+			canvasBuffer.drawPath(mCirclePath30, mCirclePaint);
+			canvasBuffer.drawPath(mCirclePath60, mCirclePaint);
+
+			drawEmptyPlane(canvasBuffer, mWychylenieMaxPaint);
+			
+		}else{
+			canvas.drawBitmap(canvasBackground, 0, 0, mWychylenieMaxPaint);
+			canvas.translate(this.getWidth() / 2, this.getHeight() / 2);
+			drawAngleArray(mWychylenia, canvas, mWychylenieMaxPaint);
+		}
+		
 	}
 
 	/**
@@ -681,7 +621,6 @@ public class HistogramView extends View{
 		calculateProgressDegrees();
 
 		initRects();
-
 		initPaths();
 
 		calculatePointerXYPosition();

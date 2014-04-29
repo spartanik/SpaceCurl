@@ -259,46 +259,11 @@ public class SensorView extends View {
 	private boolean mMaintainEqualCircle;
 
 	/**
-	 * Once a user has touched the circle, this determines if moving outside the circle is able 
-	 * to change the position of the pointer (and in turn, the progress).
-	 */
-	private boolean mMoveOutsideCircle;
-
-	/**
-	 * Used for when the user moves beyond the start of the circle when moving counter clockwise.
-	 * Makes it easier to hit the 0 progress mark.
-	 */
-	private boolean lockAtStart = true;
-
-	/**
-	 * Used for when the user moves beyond the end of the circle when moving clockwise.
-	 * Makes it easier to hit the 100% (max) progress mark.
-	 */
-	private boolean lockAtEnd = false;
-
-	/**
 	 * When the user is touching the circle on ACTION_DOWN, this is set to true.
 	 * Used when touching the CircularSeekBar.
 	 */
 	private boolean mUserIsMovingPointer = false;
 
-	/**
-	 * Represents the clockwise distance from {@code mStartAngle} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float cwDistanceFromStart;
-
-	/**
-	 * Represents the counter-clockwise distance from {@code mStartAngle} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float ccwDistanceFromStart;
-
-	/**
-	 * Represents the clockwise distance from {@code mEndAngle} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float cwDistanceFromEnd;
 
 	/**
 	 * Represents the counter-clockwise distance from {@code mEndAngle} to the touch angle.
@@ -307,30 +272,6 @@ public class SensorView extends View {
 	 */
 	@SuppressWarnings("unused")
 	private float ccwDistanceFromEnd;
-
-	/**
-	 * The previous touch action value for {@code cwDistanceFromStart}.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float lastCWDistanceFromStart;
-
-	/**
-	 * Represents the clockwise distance from {@code mPointerPosition} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float cwDistanceFromPointer;
-
-	/**
-	 * Represents the counter-clockwise distance from {@code mPointerPosition} to the touch angle.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private float ccwDistanceFromPointer;
-
-	/**
-	 * True if the user is moving clockwise around the circle, false if moving counter-clockwise.
-	 * Used when touching the CircularSeekBar.
-	 */
-	private boolean mIsMovingCW;
 
 	/**
 	 * The width of the circle used in the {@code RectF} that is used to draw it.
@@ -438,7 +379,7 @@ public class SensorView extends View {
 		mProgress = attrArray.getInt(R.styleable.CircularSeekBar_progress, DEFAULT_PROGRESS);
 		mCustomRadii = attrArray.getBoolean(R.styleable.CircularSeekBar_use_custom_radii, DEFAULT_USE_CUSTOM_RADII);
 		mMaintainEqualCircle = attrArray.getBoolean(R.styleable.CircularSeekBar_maintain_equal_circle, DEFAULT_MAINTAIN_EQUAL_CIRCLE);
-		mMoveOutsideCircle = attrArray.getBoolean(R.styleable.CircularSeekBar_move_outside_circle, DEFAULT_MOVE_OUTSIDE_CIRCLE);
+//		mMoveOutsideCircle = attrArray.getBoolean(R.styleable.CircularSeekBar_move_outside_circle, DEFAULT_MOVE_OUTSIDE_CIRCLE);
 
 		// Modulo 360 right now to avoid constant conversion
 		mStartAngle = ((360f + (attrArray.getFloat((R.styleable.CircularSeekBar_start_angle), DEFAULT_START_ANGLE) % 360f)) % 360f);

@@ -598,7 +598,7 @@ public class RotationView extends View {
 		
         mPointerPositionXY[0]=(float) x;
         mPointerPositionXY[1]=(float) y;
-        Log.e("XY", "p,t: "+phi+", " + theta + "x,y: "+x + ","+y);
+//        Log.e("XY", "p,t: "+phi+", " + theta + "x,y: "+x + ","+y);
         invalidate();
 	}
 	
