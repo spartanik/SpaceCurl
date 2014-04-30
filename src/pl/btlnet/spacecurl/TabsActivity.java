@@ -1,21 +1,19 @@
 package pl.btlnet.spacecurl;
 
-import java.util.concurrent.Semaphore;
+import java.util.List;
 
 import pl.btlnet.spacecurl.ui.HistogramView;
 import pl.btlnet.spacecurl.ui.PlanesView;
 import pl.btlnet.spacecurl.ui.RotationView;
 import pl.btlnet.spacecurl.ui.ZoomOutPageTransformer;
-import android.animation.AnimatorInflater;
-import android.animation.AnimatorSet;
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.ActionBar.Tab;
 import android.app.ActionBar.TabListener;
 import android.content.res.Resources;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.hardware.SensorListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -24,20 +22,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
-import android.transition.Visibility;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
@@ -106,10 +99,13 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	public void showHideActionBar(View v){
 		final ActionBar actionBar = getActionBar();
 
-		if (actionBar.isShowing())
+		if (actionBar.isShowing()){
 			actionBar.hide();
-		else
+			startSensing(mSensorManager);			
+		} else{
 			actionBar.show();
+			stopSensing(mSensorManager);
+		}
 	}
 	
 	
@@ -117,10 +113,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	protected void onResume() {
 		super.onResume();
 		mWakeLock.acquire();
-		
-		
-		
-		
+		startSensing(mSensorManager);
 	}
 	
 	@Override
@@ -229,9 +222,21 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 
 		}
 		
+		@Override
+		public void onResume() {
+			findViews(getView());
+			startSensing(mSensorManager);
+			super.onResume();
+		}
 		
+		@Override
+		public void onAttach(Activity activity) {
+			findViews(getView());
+			startSensing(mSensorManager);
+			super.onAttach(activity);
+		}
 		
-		private void findViews(View rootView){
+		public void findViews(View rootView){
 			
 			OnSeekBarChangeListener progressMonitor = new SeekBar.OnSeekBarChangeListener() {
 				
@@ -277,6 +282,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 			
 			try {
 				statycznyZamkniete = (HistogramView) rootView.findViewById(R.id.histogramViewBefore);
+				statycznyZamkniete.invalidate();
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
@@ -284,6 +290,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 			
 			try {
 				statycznyOtwarte = (HistogramView) rootView.findViewById(R.id.histogramViewAfter);
+				statycznyOtwarte.invalidate();
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
@@ -321,26 +328,32 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
-			
-			
-			
-			
+
 		}
-		
-		
-		
+
 
 	}
 
-	
-
-	@Override
-	protected void onResumeFragments() {
-		super.onResumeFragments();
-		
-		startSensing(mSensorManager);
-	}
-
+//	
+//
+//	@Override
+//	protected void onResumeFragments() {
+//		super.onResumeFragments();
+//    
+//		TabFragment tf = (TabFragment) getSupportFragmentManager().findFragmentById(R.id.tab1);
+//		tf.findViews(tf.getView());
+//    
+//		startSensing(mSensorManager);
+//	}
+//
+//	@Override
+//	public void onAttachFragment(android.app.Fragment fragment) {
+//		super.onAttachFragment(fragment);
+//	    
+//		TabFragment tf = (TabFragment) getSupportFragmentManager().findFragmentById(R.id.tab1);
+//		tf.findViews(tf.getView());
+//		startSensing(mSensorManager);
+//	}
 
 	public static String gender = "female";
 	static void setGender(View root){
@@ -392,7 +405,6 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		calibration.startAnimation(comeAnimation);
 		calibration.setVisibility(View.VISIBLE);
 
-		
 		gender="female";
 	}
 	
@@ -423,14 +435,14 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		} catch (Exception e) {}
 		
 		try {
-			statycznyZamkniete.putWychylenie(dataX, dataY);
-		} catch (Exception e) {}
-		
-		try {
 			statycznyOtwarte.putWychylenie(dataX, dataZ);
 		} catch (Exception e) {}
 		
-		Log.d("XYZS", dataX + " \t"+dataY+" \t"+dataZ+" \t"+dataS);
+		try {
+			statycznyZamkniete.putWychylenie(dataX, dataZ);
+		} catch (Exception e) {}
+				
+//		Log.d("XYZS", dataX + " \t"+dataY+" \t"+dataZ+" \t"+dataS);
 	}
 
 	@Override
@@ -452,6 +464,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 
 	public void stopSensing(SensorManager sm) {
 		sm.unregisterListener(this);
+		mRotationVector=null;
 	}
 	
 	

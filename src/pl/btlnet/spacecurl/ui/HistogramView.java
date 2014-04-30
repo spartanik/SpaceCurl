@@ -508,7 +508,7 @@ public class HistogramView extends View{
 		}else{
 			Log.e("TAG", "?! [r,phi]=\t"+radius +"\t"+angle);
 		}
-		
+		invalidate();
 	}
 	
 	
