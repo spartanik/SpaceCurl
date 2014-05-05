@@ -503,10 +503,10 @@ public class HistogramView extends View{
 		int angle = (int) Math.floor(phi/5f);
 		if(radius>=0 && radius<rBins && 
 				angle>=0 && angle <phiBins){
-			Log.e("TAG", "[r,phi]=\t" + radius + "\t" + angle);
+			Log.d("TAG", "[r,phi]=\t" + radius + "\t" + angle);
 			mWychylenia[radius][angle]++;
 		}else{
-			Log.e("TAG", "?! [r,phi]=\t"+radius +"\t"+angle);
+			Log.d("TAG", "?! [r,phi]=\t"+radius +"\t"+angle);
 		}
 		invalidate();
 	}

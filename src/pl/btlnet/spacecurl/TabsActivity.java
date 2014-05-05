@@ -37,13 +37,13 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 public class TabsActivity extends FragmentActivity implements TabListener, SensorEventListener {
 	CollectionPagerAdapter mCollectionPagerAdapter;
 	ViewPager mViewPager;
-
+	public final String tag = "TAG";
 	private SensorManager mSensorManager;
 	private PowerManager mPowerManager;
 	private WindowManager mWindowManager;
 	private WakeLock mWakeLock;
 
-	private Sensor mRotationVector;
+	private Sensor mRotationSensor;
 	private long mSensorTimeStamp;
 	private long mCpuTimeStamp;
 	
@@ -186,6 +186,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	
 	public class TabFragment extends Fragment {
 		public static final String ARG_OBJECT = "object";
+		private FragmentActivity myContext;
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -223,137 +224,185 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		}
 		
 		@Override
+		public void onCreate(Bundle savedInstanceState) {
+			Log.e(tag, "Fragment Created");
+			super.onCreate(savedInstanceState);
+		}
+		
+		@Override
 		public void onResume() {
-			findViews(getView());
-			startSensing(mSensorManager);
+//			findViews(getView());
+//			startSensing(mSensorManager);
+
+			Log.e(tag, "Fragment Resumed");
 			super.onResume();
 		}
 		
 		@Override
+		public void onActivityCreated(Bundle savedInstanceState) {
+
+			Log.e(tag, "Activity Created");
+
+//			findViews(getView());
+			super.onActivityCreated(savedInstanceState);
+		}
+		
+		
+		@Override
 		public void onAttach(Activity activity) {
-			findViews(getView());
-			startSensing(mSensorManager);
+			myContext=(FragmentActivity) activity;
 			super.onAttach(activity);
 		}
 		
-		public void findViews(View rootView){
-			
-			OnSeekBarChangeListener progressMonitor = new SeekBar.OnSeekBarChangeListener() {
-				
-				@Override
-				public void onStopTrackingTouch(SeekBar seekBar) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				public void onStartTrackingTouch(SeekBar seekBar) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				@Override
-				public void onProgressChanged(SeekBar seekBar, int progress,
-						boolean fromUser) {
-					int position = seekBar.getSecondaryProgress();
-					
-					View parentView = (View)seekBar.getParent().getParent();
-					PlanesView planesView = (PlanesView) parentView.findViewById(R.id.rotationView);
-					planesView.setWychylenieMax(position, progress);
-					planesView.invalidate();
-				}
-			};
-			
-			
-			
-			try {
-				((SeekBar) rootView.findViewById(R.id.SeekBar0)).setOnSeekBarChangeListener(progressMonitor);
-				((SeekBar) rootView.findViewById(R.id.SeekBar1)).setOnSeekBarChangeListener(progressMonitor);
-				((SeekBar) rootView.findViewById(R.id.SeekBar2)).setOnSeekBarChangeListener(progressMonitor);
-				((SeekBar) rootView.findViewById(R.id.SeekBar3)).setOnSeekBarChangeListener(progressMonitor);
-				((SeekBar) rootView.findViewById(R.id.SeekBar4)).setOnSeekBarChangeListener(progressMonitor);
-				((SeekBar) rootView.findViewById(R.id.SeekBar5)).setOnSeekBarChangeListener(progressMonitor);
-				((SeekBar) rootView.findViewById(R.id.SeekBar6)).setOnSeekBarChangeListener(progressMonitor);
-				((SeekBar) rootView.findViewById(R.id.SeekBar7)).setOnSeekBarChangeListener(progressMonitor);
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
-
-			
-			try {
-				statycznyZamkniete = (HistogramView) rootView.findViewById(R.id.histogramViewBefore);
-				statycznyZamkniete.invalidate();
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
-			
-			
-			try {
-				statycznyOtwarte = (HistogramView) rootView.findViewById(R.id.histogramViewAfter);
-				statycznyOtwarte.invalidate();
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
-			
-			
-			OnSeekBarChangeListener anglesMonitor = new SeekBar.OnSeekBarChangeListener() {
-				
-				float phi,theta=0;
-				
-				
-				@Override
-				public void onStopTrackingTouch(SeekBar seekBar) {	}
-				
-				@Override
-				public void onStartTrackingTouch(SeekBar seekBar) {}
-				
-				@Override
-				public void onProgressChanged(SeekBar seekBar, int progress,
-						boolean fromUser) {
-					
-					if(seekBar.getId()==R.id.SeekBarPhi) phi = 3.6f*progress;
-					if(seekBar.getId()==R.id.SeekBarTheta) theta = 90-2.5f/10f*progress;
-					
-					View parentView = (View)seekBar.getParent().getParent();
-					RotationView rotView = (RotationView) parentView.findViewById(R.id.calibrationRotationView);
-					rotView.updateRotation(phi, theta);
-					sensorView = rotView;
-					Log.d("TAG", "Katy: "+phi + " , "+theta);
-				}
-			};
-			
-			try {
-				((SeekBar) rootView.findViewById(R.id.SeekBarPhi)).setOnSeekBarChangeListener(anglesMonitor);
-				((SeekBar) rootView.findViewById(R.id.SeekBarTheta)).setOnSeekBarChangeListener(anglesMonitor);
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
-
+		@Override
+		public void onDestroyView() {
+			Log.e(tag, "FragmentView Destroyed");
+			super.onDestroyView();
+		}
+		
+		@Override
+		public void onSaveInstanceState(Bundle outState) {
+			Log.e(tag, "Fragment Saved");
+			super.onSaveInstanceState(outState);
 		}
 
 
 	}
+	
+	
+	
+	
+	
+	
+	
+	public void findViews(View rootView){
+		
+//		if(true) return;
+		
+		OnSeekBarChangeListener progressMonitor = new SeekBar.OnSeekBarChangeListener() {
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				int position = seekBar.getSecondaryProgress();
+				
+				View parentView = (View)seekBar.getParent().getParent();
+				PlanesView planesView = (PlanesView) parentView.findViewById(R.id.rotationView);
+				planesView.setWychylenieMax(position, progress);
+				planesView.invalidate();
+			}
+		};
+		
+		
+		
+		try {
+			((SeekBar) rootView.findViewById(R.id.SeekBar0)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) rootView.findViewById(R.id.SeekBar1)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) rootView.findViewById(R.id.SeekBar2)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) rootView.findViewById(R.id.SeekBar3)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) rootView.findViewById(R.id.SeekBar4)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) rootView.findViewById(R.id.SeekBar5)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) rootView.findViewById(R.id.SeekBar6)).setOnSeekBarChangeListener(progressMonitor);
+			((SeekBar) rootView.findViewById(R.id.SeekBar7)).setOnSeekBarChangeListener(progressMonitor);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 
-//	
-//
-//	@Override
-//	protected void onResumeFragments() {
-//		super.onResumeFragments();
-//    
-//		TabFragment tf = (TabFragment) getSupportFragmentManager().findFragmentById(R.id.tab1);
-//		tf.findViews(tf.getView());
-//    
+		try {
+			sensorView = (RotationView) rootView.findViewById(R.id.calibrationRotationView);
+//			sensorView.invalidate();
+		} catch (Exception e) {
+			Log.e(tag,"Brak sensorView");
+		}
+		
+		
+		try {
+			statycznyZamkniete = (HistogramView) rootView.findViewById(R.id.histogramViewBefore);
+//			statycznyZamkniete.invalidate();
+		} catch (Exception e) {
+			Log.e(tag,"Brak statycznyZamkniete");
+		}
+		
+		
+		try {
+			statycznyOtwarte = (HistogramView) rootView.findViewById(R.id.histogramViewAfter);
+//			statycznyOtwarte.invalidate();
+		} catch (Exception e) {
+			Log.e(tag,"Brak statycznyOtwarte");
+		}
+		
+		
+		OnSeekBarChangeListener anglesMonitor = new SeekBar.OnSeekBarChangeListener() {
+			
+			float phi,theta=0;
+			
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {	}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				
+				if(seekBar.getId()==R.id.SeekBarPhi) phi = 3.6f*progress;
+				if(seekBar.getId()==R.id.SeekBarTheta) theta = 90-2.5f/10f*progress;
+				
+				View parentView = (View)seekBar.getParent().getParent();
+				RotationView rotView = (RotationView) parentView.findViewById(R.id.calibrationRotationView);
+				rotView.updateRotation(phi, theta);
+//				sensorView = rotView;
+				Log.d("TAG", "Katy: "+phi + " , "+theta);
+			}
+		};
+		
+		try {
+			((SeekBar) rootView.findViewById(R.id.SeekBarPhi)).setOnSeekBarChangeListener(anglesMonitor);
+			((SeekBar) rootView.findViewById(R.id.SeekBarTheta)).setOnSeekBarChangeListener(anglesMonitor);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+
+	}
+	
+	
+
+	
+	@Override
+	protected void onResumeFragments() {
+		super.onResumeFragments();
+    
+//		TabFragment tf = (TabFragment) getSupportFragmentManager().findFragmentById(R.id.pager);
+//		findViews(tf.getView());
+    
 //		startSensing(mSensorManager);
-//	}
+	}
 //
-//	@Override
-//	public void onAttachFragment(android.app.Fragment fragment) {
-//		super.onAttachFragment(fragment);
+	@Override
+	public void onAttachFragment(android.app.Fragment fragment) {
+		Log.e("TAG", "Attached");
+		
+		super.onAttachFragment(fragment);
 //	    
 //		TabFragment tf = (TabFragment) getSupportFragmentManager().findFragmentById(R.id.tab1);
 //		tf.findViews(tf.getView());
 //		startSensing(mSensorManager);
-//	}
+	}
+	
 
 	public static String gender = "female";
 	static void setGender(View root){
@@ -382,10 +431,8 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		Animation goneAnimation = AnimationUtils.loadAnimation(this, R.anim.disappear);
 		female.startAnimation(goneAnimation);
 		
-		
 		female.setVisibility(View.GONE);
 		RotationView calibration = (RotationView) findViewById(R.id.calibrationRotationView);
-		
 		
 		Animation comeAnimation = AnimationUtils.loadAnimation(this, R.anim.appear);
 		calibration.startAnimation(comeAnimation);
@@ -430,6 +477,42 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		float mSensorValueS = (float) (2 * Math.acos(event.values[2]));
 		final int dataS = (int) (90 * mSensorValueS);
 		
+
+		Log.d("XYZS", dataX + " \t"+dataY+" \t"+dataZ+" \t"+dataS);
+		
+		try {
+			sensorView = (RotationView) findViewById(R.id.calibrationRotationView);
+			sensorView.updateRotation(dataX, dataZ);	
+			sensorView.invalidate();
+		} catch (Exception e) {
+			Log.e(tag,"Brak sensorView");
+		}
+		
+		
+		try {
+			statycznyZamkniete = (HistogramView) findViewById(R.id.histogramViewBefore);
+			statycznyZamkniete.putWychylenie(dataX, dataZ);
+			statycznyZamkniete.invalidate();
+		} catch (Exception e) {
+			Log.e(tag,"Brak statycznyZamkniete");
+		}
+		
+		
+		try {
+			statycznyOtwarte = (HistogramView) findViewById(R.id.histogramViewAfter);
+			statycznyOtwarte.putWychylenie(dataX, dataZ);
+			statycznyOtwarte.invalidate();
+		} catch (Exception e) {
+			Log.e(tag,"Brak statycznyOtwarte");
+		}
+		
+		
+		
+		
+		
+		
+		
+		
 		try {
 			sensorView.updateRotation(dataX, dataZ);	
 		} catch (Exception e) {}
@@ -442,7 +525,6 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 			statycznyZamkniete.putWychylenie(dataX, dataZ);
 		} catch (Exception e) {}
 				
-//		Log.d("XYZS", dataX + " \t"+dataY+" \t"+dataZ+" \t"+dataS);
 	}
 
 	@Override
@@ -452,19 +534,19 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	}
 
 	public void initSensor(SensorManager sm) {
-		mRotationVector = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+		mRotationSensor = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 	}
 
 	public void startSensing(SensorManager sm) {
-		if (mRotationVector == null) {
+		if (mRotationSensor == null) {
 			initSensor(sm);
 		}
-		sm.registerListener(this, mRotationVector,	SensorManager.SENSOR_DELAY_UI);
+		sm.registerListener(this, mRotationSensor,	SensorManager.SENSOR_DELAY_UI);
 	}
 
 	public void stopSensing(SensorManager sm) {
 		sm.unregisterListener(this);
-		mRotationVector=null;
+		mRotationSensor=null;
 	}
 	
 	
