@@ -31,7 +31,7 @@ public class HistogramView extends View{
 	 * Minimum touch target size in DP. 48dp is the Android design recommendation
 	 */
 	private final float MIN_TOUCH_TARGET_DP = 48;
-
+ 
 	// Default values
 	private static final float DEFAULT_CIRCLE_X_RADIUS = 30f;
 	private static final float DEFAULT_CIRCLE_Y_RADIUS = 30f;
@@ -497,13 +497,14 @@ public class HistogramView extends View{
 	final int phiBins = 72;
 
 	private int[][] mWychylenia = new int[rBins][phiBins]; //r, phi
+	private long maxCount=0;
 	
 	public void putWychylenie(float r, float phi){
 		int radius = (int) Math.floor(r/5f);
 		int angle = (int) Math.floor(phi/5f);
-		if(radius>=0 && radius<rBins && 
-				angle>=0 && angle <phiBins){
-			Log.d("TAG", "[r,phi]=\t" + radius + "\t" + angle);
+		if(radius>=0 && radius<rBins 
+			&& angle>=0 && angle <phiBins){
+//			Log.d("TAG", "[r,phi]=\t" + radius + "\t" + angle);
 			mWychylenia[radius][angle]++;
 		}else{
 			Log.d("TAG", "?! [r,phi]=\t"+radius +"\t"+angle);
@@ -533,6 +534,8 @@ public class HistogramView extends View{
 	}
 	
 	
+
+	
 	void drawAngleArray(int[][] anglesArray, Canvas canvas, Paint p) {
 		float baseAngle = -90;
 		
@@ -541,8 +544,17 @@ public class HistogramView extends View{
 				
 				if(anglesArray[j][i]==0) continue;
 				
-				float frequencyRatio = anglesArray[j][i] / 3f;
-				int colorUpdate = Color.argb(190, (int)(255*(frequencyRatio)), (int)(255*(1-frequencyRatio)), 0);
+				if(anglesArray[j][i] > maxCount){
+					maxCount = anglesArray[j][i];
+					invalidate();
+				}
+				
+				float frequencyRatio = (float) anglesArray[j][i] / (float) maxCount;
+//				Log.e("TAG", "freaq: "+frequencyRatio);
+				int colorUpdate = Color.argb((int)(120 + 100*frequencyRatio), 
+						(int)(255*(frequencyRatio)), 
+						(int)(255*(1-frequencyRatio)), 
+						0);
 				p.setColor(colorUpdate);
 				
 				float rRatio = j/(float)rBins;
@@ -556,13 +568,22 @@ public class HistogramView extends View{
 		}
 	}
 	
+	
+	public void resetCount(){
+		mWychylenia = new int[rBins][phiBins];
+		maxCount = 0;
+		redraw = true;
+	}
+	
+	
 	Bitmap canvasBackground;
+	boolean redraw = true;
 	
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
 		
-		if (canvasBackground == null) {
+		if (canvasBackground == null || redraw) {
 		
 			canvasBackground = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
 			Canvas canvasBuffer = new Canvas(canvasBackground);
@@ -575,6 +596,10 @@ public class HistogramView extends View{
 
 			drawEmptyPlane(canvasBuffer, mWychylenieMaxPaint);
 			
+			canvas.drawBitmap(canvasBackground, 0, 0, mWychylenieMaxPaint);
+			canvas.translate(this.getWidth() / 2, this.getHeight() / 2);
+			drawAngleArray(mWychylenia, canvas, mWychylenieMaxPaint);
+			redraw = false;
 		}else{
 			canvas.drawBitmap(canvasBackground, 0, 0, mWychylenieMaxPaint);
 			canvas.translate(this.getWidth() / 2, this.getHeight() / 2);
@@ -944,13 +969,13 @@ public class HistogramView extends View{
 		
         switch (event.getAction()) {
         case MotionEvent.ACTION_DOWN:
-        	useEvent(event);
+//        	useEvent(event);
         	break;
         case MotionEvent.ACTION_MOVE:
-        	useEvent(event);
+//        	useEvent(event);
         	break;
         case MotionEvent.ACTION_UP:
-            
+        	resetCount();
             break;
         case MotionEvent.ACTION_CANCEL:
             break;

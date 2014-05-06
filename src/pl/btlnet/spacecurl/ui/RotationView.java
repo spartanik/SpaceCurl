@@ -593,12 +593,12 @@ public class RotationView extends View {
 
 	public void updateRotation(float phi, float theta){
 
-		double x = getMeasuredWidth()*Math.cos(Math.toRadians(theta))*Math.cos(Math.toRadians(phi));
-		double y = getMeasuredHeight()*Math.cos(Math.toRadians(theta))*Math.sin(Math.toRadians(phi));
+		double x = -phi; //getMeasuredWidth()*Math.cos(Math.toRadians(theta))*Math.cos(Math.toRadians(phi));
+		double y = theta-90; //getMeasuredHeight()*Math.cos(Math.toRadians(theta))*Math.sin(Math.toRadians(phi));
 		
         mPointerPositionXY[0]=(float) x;
         mPointerPositionXY[1]=(float) y;
-//        Log.e("XY", "p,t: "+phi+", " + theta + "x,y: "+x + ","+y);
+//        Log.e("XY", "p,t: "+phi+", \t" + theta + " \tx,y: "+x + ","+y);
         invalidate();
 	}
 	

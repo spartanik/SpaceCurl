@@ -343,39 +343,39 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 			Log.e(tag,"Brak statycznyOtwarte");
 		}
 		
+//		
+//		OnSeekBarChangeListener anglesMonitor = new SeekBar.OnSeekBarChangeListener() {
+//			
+//			float phi,theta=0;
+//			
+//			
+//			@Override
+//			public void onStopTrackingTouch(SeekBar seekBar) {	}
+//			
+//			@Override
+//			public void onStartTrackingTouch(SeekBar seekBar) {}
+//			
+//			@Override
+//			public void onProgressChanged(SeekBar seekBar, int progress,
+//					boolean fromUser) {
+//				
+//				if(seekBar.getId()==R.id.SeekBarPhi) phi = 3.6f*progress;
+//				if(seekBar.getId()==R.id.SeekBarTheta) theta = 90-2.5f/10f*progress;
+//				
+//				View parentView = (View)seekBar.getParent().getParent();
+//				RotationView rotView = (RotationView) parentView.findViewById(R.id.calibrationRotationView);
+//				rotView.updateRotation(phi, theta);
+////				sensorView = rotView;
+//				Log.d("TAG", "Katy: "+phi + " , "+theta);
+//			}
+//		};
 		
-		OnSeekBarChangeListener anglesMonitor = new SeekBar.OnSeekBarChangeListener() {
-			
-			float phi,theta=0;
-			
-			
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar) {	}
-			
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar) {}
-			
-			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress,
-					boolean fromUser) {
-				
-				if(seekBar.getId()==R.id.SeekBarPhi) phi = 3.6f*progress;
-				if(seekBar.getId()==R.id.SeekBarTheta) theta = 90-2.5f/10f*progress;
-				
-				View parentView = (View)seekBar.getParent().getParent();
-				RotationView rotView = (RotationView) parentView.findViewById(R.id.calibrationRotationView);
-				rotView.updateRotation(phi, theta);
-//				sensorView = rotView;
-				Log.d("TAG", "Katy: "+phi + " , "+theta);
-			}
-		};
-		
-		try {
-			((SeekBar) rootView.findViewById(R.id.SeekBarPhi)).setOnSeekBarChangeListener(anglesMonitor);
-			((SeekBar) rootView.findViewById(R.id.SeekBarTheta)).setOnSeekBarChangeListener(anglesMonitor);
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
+//		try {
+//			((SeekBar) rootView.findViewById(R.id.SeekBarPhi)).setOnSeekBarChangeListener(anglesMonitor);
+//			((SeekBar) rootView.findViewById(R.id.SeekBarTheta)).setOnSeekBarChangeListener(anglesMonitor);
+//		} catch (Exception e) {
+//			// TODO: handle exception
+//		}
 
 	}
 	
@@ -458,52 +458,56 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		if (event.sensor.getType() != Sensor.TYPE_ROTATION_VECTOR)
+		if (event.sensor.getType() != Sensor.TYPE_ORIENTATION)
 			return;
 		
 		mSensorTimeStamp = event.timestamp;
 		mCpuTimeStamp = System.nanoTime();
 		final long now = mSensorTimeStamp + (System.nanoTime() - mCpuTimeStamp);
 		
-		float mSensorValueX = (float) (2 * Math.asin(event.values[0]));
-		final int dataX = (int) (90 * mSensorValueX);
+//		float mSensorValueX = (float) (2 * Math.asin(event.values[0]));
+//		final int dataX = (int) (90 * mSensorValueX);
+//
+//		float mSensorValueY = (float) (2 * Math.asin(event.values[1]));
+//		final int dataY = (int) (90 * mSensorValueY);
+//		
+//		float mSensorValueZ = (float) (2 * Math.asin(event.values[2]));
+//		final int dataZ = (int) (90 * mSensorValueZ);
+//		
+//		float mSensorValueS = (float) (2 * Math.acos(event.values[3]));
+//		final int dataS = (int) (90 * mSensorValueS);
 
-		float mSensorValueY = (float) (2 * Math.asin(event.values[1]));
-		final int dataY = (int) (90 * mSensorValueY);
-		
-		float mSensorValueZ = (float) (2 * Math.asin(event.values[2]));
-		final int dataZ = (int) (90 * mSensorValueZ);
-		
-		float mSensorValueS = (float) (2 * Math.acos(event.values[2]));
-		final int dataS = (int) (90 * mSensorValueS);
-		
+		final int dataZ = (int) (event.values[0]);
+		final int dataX = (int) event.values[1];
+		final int dataY = (int) event.values[2];
+		final int dataS = (int) (event.values[2] - event.values[1]);
 
 		Log.d("XYZS", dataX + " \t"+dataY+" \t"+dataZ+" \t"+dataS);
 		
 		try {
 			sensorView = (RotationView) findViewById(R.id.calibrationRotationView);
-			sensorView.updateRotation(dataX, dataZ);	
+			sensorView.updateRotation(dataX, dataY);	
 			sensorView.invalidate();
 		} catch (Exception e) {
-			Log.e(tag,"Brak sensorView");
+//			Log.e(tag,"Brak sensorView");
 		}
 		
 		
 		try {
 			statycznyZamkniete = (HistogramView) findViewById(R.id.histogramViewBefore);
-			statycznyZamkniete.putWychylenie(dataX, dataZ);
+			statycznyZamkniete.putWychylenie(45, dataZ);
 			statycznyZamkniete.invalidate();
 		} catch (Exception e) {
-			Log.e(tag,"Brak statycznyZamkniete");
+//			Log.e(tag,"Brak statycznyZamkniete");
 		}
 		
 		
 		try {
 			statycznyOtwarte = (HistogramView) findViewById(R.id.histogramViewAfter);
-			statycznyOtwarte.putWychylenie(dataX, dataZ);
+			statycznyOtwarte.putWychylenie(-dataS, 10);
 			statycznyOtwarte.invalidate();
 		} catch (Exception e) {
-			Log.e(tag,"Brak statycznyOtwarte");
+//			Log.e(tag,"Brak statycznyOtwarte");
 		}
 		
 		
@@ -534,7 +538,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	}
 
 	public void initSensor(SensorManager sm) {
-		mRotationSensor = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+		mRotationSensor = sm.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 	}
 
 	public void startSensing(SensorManager sm) {

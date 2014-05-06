@@ -26,6 +26,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity android:name="pl.btlnet.spacecurl.GeoRotation"
+                  android:label="@string/app_name"
+                  android:screenOrientation="landscape" android:theme="@android:style/Theme.Holo">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        
         <activity android:name="pl.btlnet.spacecurl.SensorsActivity"
                   android:screenOrientation="landscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         </activity>
