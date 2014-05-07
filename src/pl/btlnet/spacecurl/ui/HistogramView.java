@@ -576,7 +576,7 @@ public class HistogramView extends View{
 	}
 	
 	
-	Bitmap canvasBackground;
+	private Bitmap canvasBackground;
 	boolean redraw = true;
 	
 	@Override
@@ -955,7 +955,7 @@ public class HistogramView extends View{
         
         Log.d("TAG", "(\t"+xPosition +",\t"+yPosition+"\t) => \t"+dist+" , \t"+phi);
         
-        putWychylenie((float)dist, (float)phi);
+//        putWychylenie((float)dist, (float)phi);
 		
 		final long now = System.nanoTime();
 		if (now > lastUpdateTime + TimeUnit.MILLISECONDS.toNanos(200)) {

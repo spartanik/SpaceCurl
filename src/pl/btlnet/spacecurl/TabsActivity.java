@@ -217,7 +217,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 
 			
 			View rootView = inflater.inflate(tabLayout, container, false);
-			findViews(rootView);
+//			findViews(rootView);
 			setGender(rootView);
 			return rootView;
 
@@ -463,7 +463,9 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		
 		mSensorTimeStamp = event.timestamp;
 		mCpuTimeStamp = System.nanoTime();
-		final long now = mSensorTimeStamp + (System.nanoTime() - mCpuTimeStamp);
+
+		final long diff = System.nanoTime() - mCpuTimeStamp;
+		final long now = mSensorTimeStamp + diff;
 		
 //		float mSensorValueX = (float) (2 * Math.asin(event.values[0]));
 //		final int dataX = (int) (90 * mSensorValueX);
@@ -482,7 +484,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		final int dataY = (int) event.values[2];
 		final int dataS = (int) (event.values[2] - event.values[1]);
 
-		Log.d("XYZS", dataX + " \t"+dataY+" \t"+dataZ+" \t"+dataS);
+		Log.d("XYZS", "["+diff+"] "+dataX + " \t"+dataY+" \t"+dataZ+" \t ("+dataS);
 		
 		try {
 			sensorView = (RotationView) findViewById(R.id.calibrationRotationView);
@@ -496,7 +498,6 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		try {
 			statycznyZamkniete = (HistogramView) findViewById(R.id.histogramViewBefore);
 			statycznyZamkniete.putWychylenie(45, dataZ);
-			statycznyZamkniete.invalidate();
 		} catch (Exception e) {
 //			Log.e(tag,"Brak statycznyZamkniete");
 		}
@@ -505,30 +506,10 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		try {
 			statycznyOtwarte = (HistogramView) findViewById(R.id.histogramViewAfter);
 			statycznyOtwarte.putWychylenie(-dataS, 10);
-			statycznyOtwarte.invalidate();
 		} catch (Exception e) {
 //			Log.e(tag,"Brak statycznyOtwarte");
 		}
 		
-		
-		
-		
-		
-		
-		
-		
-		try {
-			sensorView.updateRotation(dataX, dataZ);	
-		} catch (Exception e) {}
-		
-		try {
-			statycznyOtwarte.putWychylenie(dataX, dataZ);
-		} catch (Exception e) {}
-		
-		try {
-			statycznyZamkniete.putWychylenie(dataX, dataZ);
-		} catch (Exception e) {}
-				
 	}
 
 	@Override
