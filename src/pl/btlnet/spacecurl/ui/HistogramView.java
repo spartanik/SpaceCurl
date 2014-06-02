@@ -649,6 +649,7 @@ public class HistogramView extends View{
 		initPaths();
 
 		calculatePointerXYPosition();
+		redraw=true;
 	}
 
 	@Override

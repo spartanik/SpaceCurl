@@ -456,12 +456,35 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	}
 	
 	
+	
+	/*
+	 * time smoothing constant for low-pass filter 0 ≤ alpha ≤ 1 ; a smaller
+	 * value basically means more smoothing See:
+	 * http://en.wikipedia.org/wiki/Low-pass_filter#Discrete-time_realization
+	 */
+	static final float ALPHA = 0.2f;
+
+	/**
+	 * @see http://en.wikipedia.org/wiki/Low-pass_filter#Algorithmic_implementation
+	 * @see http://developer.android.com/reference/android/hardware/SensorEvent.html#values
+	 */
+	protected float[] lowPass(float[] input, float[] output) {
+		if (output == null)
+			return input;
+
+		for (int i = 0; i < input.length; i++) {
+			output[i] = output[i] + ALPHA * (input[i] - output[i]);
+		}
+		return output;
+	}
+	
+	
 	@Override
-	public void onSensorChanged(SensorEvent event) {
-		if (event.sensor.getType() != Sensor.TYPE_ORIENTATION)
+	public void onSensorChanged(SensorEvent rawEvent) {
+		if (rawEvent.sensor.getType() != Sensor.TYPE_ORIENTATION)
 			return;
 		
-		mSensorTimeStamp = event.timestamp;
+		mSensorTimeStamp = rawEvent.timestamp;
 		mCpuTimeStamp = System.nanoTime();
 
 		final long diff = System.nanoTime() - mCpuTimeStamp;
@@ -479,12 +502,21 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 //		float mSensorValueS = (float) (2 * Math.acos(event.values[3]));
 //		final int dataS = (int) (90 * mSensorValueS);
 
-		final int dataZ = (int) (event.values[0]);
-		final int dataX = (int) event.values[1];
-		final int dataY = (int) event.values[2];
-		final int dataS = (int) (event.values[2] - event.values[1]);
-
-		Log.d("XYZS", "["+diff+"] "+dataX + " \t"+dataY+" \t"+dataZ+" \t ("+dataS);
+		
+		float[] smoothValues = rawEvent.values.clone();
+		lowPass(rawEvent.values, smoothValues);
+		
+		int dataZ = (int) (smoothValues[0]);
+		final int dataX = (int) smoothValues[1];
+		final int dataY = (int) smoothValues[2];
+		int dataS = (int) (rawEvent.values[2] - rawEvent.values[1]);
+		
+		//Poprawka przechylen do tylu
+		if (dataS > 0) {
+			dataZ = (dataZ + 180) % 360;
+			dataS = -dataS;
+		}
+//		Log.d("XYZS", "["+diff+"] "+dataX + " \t"+dataY+" \t"+dataZ+" \t ("+dataS);
 		
 		try {
 			sensorView = (RotationView) findViewById(R.id.calibrationRotationView);
@@ -497,7 +529,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		
 		try {
 			statycznyZamkniete = (HistogramView) findViewById(R.id.histogramViewBefore);
-			statycznyZamkniete.putWychylenie(45, dataZ);
+			statycznyZamkniete.putWychylenie(-dataS, dataZ);
 		} catch (Exception e) {
 //			Log.e(tag,"Brak statycznyZamkniete");
 		}
@@ -505,7 +537,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		
 		try {
 			statycznyOtwarte = (HistogramView) findViewById(R.id.histogramViewAfter);
-			statycznyOtwarte.putWychylenie(-dataS, 10);
+			statycznyOtwarte.putWychylenie(-dataS, dataZ);
 		} catch (Exception e) {
 //			Log.e(tag,"Brak statycznyOtwarte");
 		}
