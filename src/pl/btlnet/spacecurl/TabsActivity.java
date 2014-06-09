@@ -37,7 +37,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 public class TabsActivity extends FragmentActivity implements TabListener, SensorEventListener {
 	CollectionPagerAdapter mCollectionPagerAdapter;
 	ViewPager mViewPager;
-	public final String tag = "TAG";
+	public final static String tag = "TAG";
 	private SensorManager mSensorManager;
 	private PowerManager mPowerManager;
 	private WindowManager mWindowManager;
@@ -184,7 +184,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 	HistogramView statycznyZamkniete;
 	HistogramView statycznyOtwarte;
 	
-	public class TabFragment extends Fragment {
+	public static class TabFragment extends Fragment {
 		public static final String ARG_OBJECT = "object";
 		private FragmentActivity myContext;
 
@@ -478,6 +478,17 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		return output;
 	}
 	
+	private float singleOutput;
+	protected float lowPass(float input) {
+		if (singleOutput == 0){
+			singleOutput = input;
+			return input;
+		}
+		
+		float output = singleOutput + ALPHA * (input - singleOutput);
+		return output;
+	}
+	
 	
 	@Override
 	public void onSensorChanged(SensorEvent rawEvent) {
@@ -506,21 +517,25 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		float[] smoothValues = rawEvent.values.clone();
 		lowPass(rawEvent.values, smoothValues);
 		
-		int dataZ = (int) (smoothValues[0]);
-		final int dataX = (int) smoothValues[1];
+		int azimuth = (int) (smoothValues[0]);
+		final int pitch = (int) smoothValues[1];
 		final int dataY = (int) smoothValues[2];
-		int dataS = (int) (rawEvent.values[2] - rawEvent.values[1]);
+		int dataS = (int) -dataY;
+//				(Math.sqrt(//
+//				rawEvent.values[2] * rawEvent.values[2] //
+//						+ rawEvent.values[1] * rawEvent.values[1]//
+//				));
 		
 		//Poprawka przechylen do tylu
 		if (dataS > 0) {
-			dataZ = (dataZ + 180) % 360;
+			azimuth = (azimuth + 180) % 360;
 			dataS = -dataS;
 		}
 //		Log.d("XYZS", "["+diff+"] "+dataX + " \t"+dataY+" \t"+dataZ+" \t ("+dataS);
 		
 		try {
 			sensorView = (RotationView) findViewById(R.id.calibrationRotationView);
-			sensorView.updateRotation(dataX, dataY);	
+			sensorView.updateRotation(pitch, dataY);	
 			sensorView.invalidate();
 		} catch (Exception e) {
 //			Log.e(tag,"Brak sensorView");
@@ -529,7 +544,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		
 		try {
 			statycznyZamkniete = (HistogramView) findViewById(R.id.histogramViewBefore);
-			statycznyZamkniete.putWychylenie(-dataS, dataZ);
+			statycznyZamkniete.putWychylenie(-dataS, azimuth);
 		} catch (Exception e) {
 //			Log.e(tag,"Brak statycznyZamkniete");
 		}
@@ -537,7 +552,7 @@ public class TabsActivity extends FragmentActivity implements TabListener, Senso
 		
 		try {
 			statycznyOtwarte = (HistogramView) findViewById(R.id.histogramViewAfter);
-			statycznyOtwarte.putWychylenie(-dataS, dataZ);
+			statycznyOtwarte.putWychylenie(dataS, azimuth);
 		} catch (Exception e) {
 //			Log.e(tag,"Brak statycznyOtwarte");
 		}
